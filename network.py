@@ -42,16 +42,18 @@ class PopulationNetwork:
 	def has_converged(self):
 		return self.protocol.is_converged([n.state for n in self.agents.values()])
 
-	def get_states_in_graph(self):
+	def get_states(self):
 		# Returns a list of all states in this graph
+		# print(collections.Counter([agent.state for agent in self.agents.values()]))
+		# input()
 		return [agent.state for agent in self.agents.values()]
-		
+
 	def run_round(self):
 		if (self.has_converged()):
 			return
 		
 		# Should copy the agents states
-		self.agents_states_copy = self.agents.copy()
+		self.agents_copy = self.agents.copy()
 
 		# For every node, run the protocol
 		for node in self.graph.nodes():
@@ -59,33 +61,36 @@ class PopulationNetwork:
 			# Calculate new state based on neighbours (using copy of agents)
 			 
 			# Agents state
-			agent_state = self.agents_states_copy[node]
+			agent_state = self.agents_copy[node].state
 
 			# Neighbouring states
 			neighbouring_nodes = self.graph.neighbors(node)
-			neighbour_states = [self.agents_states_copy[n] for n in neighbouring_nodes]
+			neighbour_states = [self.agents_copy[n].state for n in neighbouring_nodes]
 
 			# Run protocol to find new state
 			new_state = self.protocol.run(agent_state, neighbour_states)
 
 			# Update this node using agent
-			self.agents[node].update_state(new_state)
+			self.agents.get(node).update_state(new_state)
 
+	def get_agents(self):
+		return self.agents.values()
+		
+	def get_graph(self):
+		return self.graph
 
+	# def show_graph(self):
+	# 	color_map = list(map(lambda agent: self.state_colours.get(agent.state), self.agents.values()))
+	# 	pos = nx.spring_layout(self.graph, seed = 1)
+	# 	nx.draw(self.graph, pos = pos, node_color = color_map)
 
-	def show_graph(self):
-		color_map = list(map(lambda agent: self.state_colours.get(agent.state), self.agents.values()))
-		pos = nx.spring_layout(self.graph, seed = 1)
-		nx.draw(self.graph, pos = pos, node_color = color_map)
-
-	def update_graph(self):
-		# f = plt.figure(figsize=(10, 5), dpi=100)
-		# a = f.add_subplot(111)
-		color_map = list(map(lambda agent: self.state_colours.get(agent.state), self.agents.values()))
-		pos = nx.spring_layout(self.graph, seed = 1)
-		# plt.pause(1)
-		plt.clf()
-		nx.draw(self.graph, pos = pos, node_color = color_map)	
-		# plt.show()
-		return plt.figure(figsize=(10, 5), dpi = 100)
-pop = Simulation(10, 2, ThreeMajority)
+	# def update_graph(self):
+	# 	# f = plt.figure(figsize=(10, 5), dpi=100)
+	# 	# a = f.add_subplot(111)
+	# 	color_map = list(map(lambda agent: self.state_colours.get(agent.state), self.agents.values()))
+	# 	pos = nx.spring_layout(self.graph, seed = 1)
+	# 	# plt.pause(1)
+	# 	plt.clf()
+	# 	nx.draw(self.graph, pos = pos, node_color = color_map)	
+	# 	# plt.show()
+	# 	return plt.figure(figsize=(10, 5), dpi = 100)
