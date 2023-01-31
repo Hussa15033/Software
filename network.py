@@ -89,19 +89,3 @@ class PopulationNetwork:
 		
 	def get_graph(self):
 		return self.graph
-
-	# def show_graph(self):
-	# 	color_map = list(map(lambda agent: self.state_colours.get(agent.state), self.agents.values()))
-	# 	pos = nx.spring_layout(self.graph, seed = 1)
-	# 	nx.draw(self.graph, pos = pos, node_color = color_map)
-
-	# def update_graph(self):
-	# 	# f = plt.figure(figsize=(10, 5), dpi=100)
-	# 	# a = f.add_subplot(111)
-	# 	color_map = list(map(lambda agent: self.state_colours.get(agent.state), self.agents.values()))
-	# 	pos = nx.spring_layout(self.graph, seed = 1)
-	# 	# plt.pause(1)
-	# 	plt.clf()
-	# 	nx.draw(self.graph, pos = pos, node_color = color_map)	
-	# 	# plt.show()
-	# 	return plt.figure(figsize=(10, 5), dpi = 100)
