@@ -17,6 +17,7 @@ from protocols.three_majority import ThreeMajority
 # 
 from agents.honest_agent import HonestAgent
 import networkx as nx
+from datalogger import DataLogger
 
 class PopulationNetwork:
 	def __init__(self, number_of_nodes, number_of_states, protocol):
@@ -38,6 +39,9 @@ class PopulationNetwork:
 			self.agents[g] = HonestAgent(random.choice(states))
 
 		self.protocol = protocol
+		self.logger = DataLogger()
+		self.round = 0
+		self.log_graph()
 
 	def has_converged(self):
 		return self.protocol.is_converged([n.state for n in self.agents.values()])
@@ -47,6 +51,10 @@ class PopulationNetwork:
 		# print(collections.Counter([agent.state for agent in self.agents.values()]))
 		# input()
 		return [agent.state for agent in self.agents.values()]
+
+	def log_graph(self):
+		self.logger.log_graph(self.round, self.get_states())
+		self.round += 1
 
 	def run_round(self):
 		if (self.has_converged()):
@@ -72,6 +80,9 @@ class PopulationNetwork:
 
 			# Update this node using agent
 			self.agents.get(node).update_state(new_state)
+
+		# Log the new state of the network
+		self.log_graph()
 
 	def get_agents(self):
 		return self.agents.values()
