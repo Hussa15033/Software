@@ -118,6 +118,7 @@ class SimulationGUI:
 		create_protocol_btn = tk.Button(graph, text = "Create protocol..", command = self.create_network)
 		play_btn = tk.Button(right_panel, text="Play", command = self.start)
 		pause_btn = tk.Button(right_panel, text="Pause", command = self.pause)
+		step_btn = tk.Button(right_panel, text = "Step", command = self.step)
 
 		f = plt.figure(figsize=(10, 5), dpi=100)
 		self.canvas = FigureCanvasTkAgg(f, graph)
@@ -135,6 +136,7 @@ class SimulationGUI:
 		# Right panel
 		play_btn.pack()
 		pause_btn.pack()
+		step_btn.pack()
 		right_panel.pack(side=tk.RIGHT, fill="y", ipadx=20)
 
 		# Graph panel
@@ -168,19 +170,30 @@ class SimulationGUI:
 		# Create a thread to do the computation, using an event to wait for the result
 		# This frees the GUI thread to allow simulation to be paused
 		event = threading.Event()
-		thread = threading.Thread(target = self.propel)
-		thread.start()
+		self.running_thread = threading.Thread(target = self.propel)
+		self.running_thread.start()
+
+	def step(self):
+		self.paused = True
+		# Wait on the running thread if it exists
+		try:
+			if self.running_thread.is_alive():
+				self.running_thread.join()
+		except:
+			# If the thread doesn't exist yet, it is irrelevant to process this exception
+			pass
+			
+		self.network.run_round()
+		self.window.event_generate("<<update_network>>", when = "tail")
 
 	def show_network_evt(self, evt):
 		self.show_network()
 
 	def propel(self):
-		while not self.network.has_converged():
-			if self.paused:
-				return
+		while not self.network.has_converged() and not self.paused:
 			self.network.run_round()
-			time.sleep(1)
 			self.window.event_generate("<<update_network>>", when="tail")
+			time.sleep(1)
 
 		print("Number of rounds:")
 		print(self.network.logger.get_number_of_rounds())
