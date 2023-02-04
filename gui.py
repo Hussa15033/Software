@@ -96,7 +96,7 @@ def show_config_modal():
 	print("Finished.")
 
 class SimulationGUI:
-	def __init__(self):
+	def __init__(self, network):
 		self.window = tk.Tk()
 		self.window.geometry("800x500")
 		self.window.title("Population Protocol")
@@ -142,8 +142,7 @@ class SimulationGUI:
 		# Graph panel
 		graph.pack(expand = True, side=tk.BOTTOM, fill = "both")
 
-		# This is only for testing purposes
-		self.create_network()
+		self.set_network(network)
 		self.show_network()
 		self.paused = True
 		self.window.bind("<<update_network>>", self.show_network_evt)
@@ -155,12 +154,12 @@ class SimulationGUI:
 		# Clear current network
 		plt.clf()
 
-		color_map = list(map(lambda node: self.state_colours.get(node.state), self.network.get_agents()))
+		color_map = list(map(lambda state: self.state_colours.get(state), self.network.get_states()))
 
 		# Create network graph GUI, fix pos seed to not randomize graph each time
-		pos = nx.spring_layout(self.network.get_graph(), seed = 1)
+		pos = nx.spring_layout(self.graph, seed = 1)
 
-		nx.draw(self.network.get_graph(), pos = pos, node_color = color_map)
+		nx.draw(self.graph, pos = pos, node_color = color_map)
 		self.canvas.draw()
 
 	def start(self):
@@ -202,15 +201,17 @@ class SimulationGUI:
 		print("Pause button clicked")
 		self.paused = True
 
-	def create_network(self):
-		# A test method to add and create a fixed network
-		self.network = PopulationNetwork(100, 2, ThreeMajority)
+	def set_network(self, network):
+		self.network = network
+		self.graph = nx.complete_graph(self.network.get_number_of_nodes())
 		self.state_colours = {state: f"#{random.randrange(0x1000000):06x}" for state in self.network.get_states()}
 
+	def create_network(self):
+		# A test method to add and create a fixed network
 		print("Create protocol button clicked")
 		pass
 
 
-SimulationGUI()
+# SimulationGUI()
 
-exit()
+# exit()

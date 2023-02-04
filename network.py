@@ -129,6 +129,9 @@ class PopulationNetwork:
 		# Log the new state of the network
 		self.log_graph()
 
+	def get_number_of_nodes(self):
+		return len(self.graph)
+
 	def get_agents(self):
 		return self.agents.values()
 		
