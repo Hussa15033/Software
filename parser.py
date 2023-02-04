@@ -1,6 +1,7 @@
 import argparse
 from network import PopulationNetwork
 from protocols.three_majority import ThreeMajority
+import networkx as nx
 
 
 # The parser for commandline arguments for the population protocols
@@ -35,6 +36,7 @@ def network_config(val):
 DEFAULT_NODE_COUNT = 10
 DEFAULT_STATE_COUNT = 2
 DEFAULT_ROUNDS_COUNT = 1
+GUI_NODE_LIMIT = 100 # Maximum number of nodes allowed when using the GUI
 
 # Dictionary of protocol name -> protocol
 PROTOCOLS = {"threemajority": ThreeMajority}
@@ -59,7 +61,9 @@ if (len(args.states) > 1 and sum(args.states) != args.nodes):
 
 # Create the network specified by the number of nodes and the state configuration
 protocol = PROTOCOLS.get(args.protocol)
-network = PopulationNetwork(10000, 2, ThreeMajority, [9900, 100])
 
+network = PopulationNetwork(10, 2, ThreeMajority, [8, 2])
+for i in range(100000000):
+	network.run_round()
 print("Done")
 # if (args.)
