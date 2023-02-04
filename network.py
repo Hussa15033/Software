@@ -20,7 +20,7 @@ import networkx as nx
 from datalogger import DataLogger
 
 class PopulationNetwork:
-	def __init__(self, number_of_nodes, number_of_states, protocol):
+	def __init__(self, number_of_nodes, number_of_states, protocol, state_config = None):
 		# The network graph
 		self.graph = nx.complete_graph(number_of_nodes)
 
@@ -28,15 +28,28 @@ class PopulationNetwork:
 			raise ValueError("Number of states must be less than number of nodes.")
 
 		# Create states
-		states = range(0, number_of_states)
 
 		self.state_colours = {}
 
+		# Node configuration is the state of every single node, each element is the state 
+		# and the index gives which node is in that state initially
+		node_configuration = []
+		if state_config is None:
+			# No configuration given, choose a random state
+			states = range(0, number_of_states)
+			node_configuration = [random.choice(states) for j in range(len(self.graph.nodes()))]
+		else:
+			# Use the given configuration to generate the node states
+			for state in range(len(state_config)):
+				node_configuration.extend([state for x in range(state_config[state])])
+			
 		# Create representation of agents, store dictionary pair
 		# associating each node with a type of agent
+		# Use the state configuration, if one is given to initialise the agents
+
 		self.agents = {}
-		for g in self.graph.nodes():
-			self.agents[g] = HonestAgent(random.choice(states))
+		for i in range(len(self.graph.nodes())):
+			self.agents[i] = HonestAgent(node_configuration[i])
 
 		self.protocol = protocol
 		self.logger = DataLogger()
