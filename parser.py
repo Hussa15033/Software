@@ -30,7 +30,6 @@ def network_config(val):
 	if not all(state_numbers):
 		raise argparse.ArgumentTypeError("Expected a number or list of comma-separated numbers")
 
-	print("LOl")
 	return [int(a) for a in split_list]
 
 
@@ -73,13 +72,20 @@ else:
 
 network = PopulationNetwork(args.nodes, network_states, protocol, state_config)
 
-print(args.nogui)
+
 if args.nogui:
-	print("Running with no gui..?")
+	import time
+	start_time = time.time()
+	for j in range(0, args.rounds):
+		# print("Running with no gui..?")
+		network = PopulationNetwork(args.nodes, network_states, protocol, state_config)
+		while not network.has_converged():
+			network.run_round()
+
+	print("--- %s seconds ---- " % (time.time() - start_time))
 else:
 	SimulationGUI(network)
 
-# for i in range(100000000):
-	# network.run_round()
+
 print("Done")
 # if (args.)
