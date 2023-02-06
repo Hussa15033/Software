@@ -111,7 +111,7 @@ class SimulationGUI:
 		graph = tk.Frame(self.window, bg="#ff0000")
 
 		# Round info label
-		self.round_label = tk.Label(top_bar, text = "test")
+		self.status_label = tk.Label(top_bar, text = "Start network")
 
 		# Add Buttons
 		# create_protocol_btn = tk.Button(top_bar, text = "Create protocol..", command = show_config_modal)
@@ -130,7 +130,7 @@ class SimulationGUI:
 
 		# Top bar packing
 		# create_protocol_btn.pack(side=tk.LEFT)
-		self.round_label.pack(side=tk.LEFT)
+		self.status_label.pack(side=tk.LEFT)
 		top_bar.pack(fill = "x")
 
 		# Right panel
@@ -146,7 +146,11 @@ class SimulationGUI:
 		self.show_network()
 		self.paused = True
 		self.window.bind("<<update_network>>", self.show_network_evt)
+		self.window.protocol("WM_DELETE_WINDOW", self.quit)
 		self.window.mainloop()
+
+	def quit(self):
+		self.window.quit()
 
 	def show_network(self):
 		print("Show network shown")
@@ -186,7 +190,13 @@ class SimulationGUI:
 		self.window.event_generate("<<update_network>>", when = "tail")
 
 	def show_network_evt(self, evt):
+		# Update all necessary GUI elements, including network
 		self.show_network()
+		current_round = self.network.round - 1
+		if (self.network.has_converged()):
+			self.status_label.config(text = "Network converged on round " + str(current_round))
+		else:
+			self.status_label.config(text = "Round " + str(self.network.round - 1))
 
 	def propel(self):
 		while not self.network.has_converged() and not self.paused:
