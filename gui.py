@@ -105,10 +105,13 @@ class StateEntryWidget(tk.Frame):
 		canvas.create_oval(5, 5, 15, 15, fill = state_colour)
 		canvas.pack(side=tk.LEFT, fill="both")
 		self.state_id_label = tk.Label(self, text = "State " + str(state_id))
-		self.state_id_label.pack(side=tk.LEFT)
+		self.state_id_label.pack(side=tk.LEFT, fill = "x", expand = True)
 
-		self.node_count_label = tk.Label(self, text = state_nodes)
-		self.node_count_label.pack(side=tk.RIGHT)
+		self.node_count_label = tk.Label(self, text = state_nodes, anchor="e")
+		self.node_count_label.pack(side=tk.RIGHT, fill = "both", expand = True)
+
+	def set_state_count(self, count):
+		self.node_count_label.config(text = count)
 
 class SimulationGUI:
 	def __init__(self, network):
@@ -123,7 +126,10 @@ class SimulationGUI:
 		right_panel = tk.Frame(self.window, width="300px")
 
 		# State list
-		self.state_list = tk.Scrollbar(right_panel)		
+		self.state_list = tk.Frame(right_panel)
+		# self.state_list = tk.Scrollbar(right_panel, orient="vertical")
+		scrollbar = tk.Scrollbar(self.state_list, orient="vertical")
+		scrollbar.pack(fill="y", expand = True)
 
 		# Graph and canvas panel
 		graph = tk.Frame(self.window, bg="#ff0000")
@@ -146,7 +152,7 @@ class SimulationGUI:
 
 		# Pack all components
 		# todo Do not pack canvas widget yet
-		self.canvas.get_tk_widget().pack()
+		self.canvas.get_tk_widget().pack(fill = "both", expand = True)
 		# create_protocol_btn.pack()
 
 		# Top bar packing
@@ -160,16 +166,19 @@ class SimulationGUI:
 		step_btn.pack()
 
 		# Create the state list frame and pack all necessary elements
-		tk.Label(right_panel, text='States', font='10', pady=10).pack(fill="x")
-		self.state_list.pack(fill="x")
-		StateEntryWidget(self.state_list, "#ff0000", 0, 50).pack(fill="x")
+		state_panel = tk.Frame(right_panel)
+		tk.Label(state_panel, text='States', font='10', pady=10).pack(fill="x")
+		self.state_list.pack(fill="y", expand = True)
+		self.state_entries = None
 		right_panel.pack(side=tk.RIGHT, fill="y", ipadx=20)
+		state_panel.pack(fill="both", expand = True)
 
 
 		# Graph panel
 		graph.pack(expand = True, side=tk.BOTTOM, fill = "both")
 
 		self.set_network(network)
+		self.update_state_entries()
 		self.show_network()
 		self.paused = True
 		self.window.bind("<<update_network>>", self.show_network_evt)
@@ -218,12 +227,18 @@ class SimulationGUI:
 
 	def show_network_evt(self, evt):
 		# Update all necessary GUI elements, including network
+		# Show the network
 		self.show_network()
+
+		# Update the round/status label
 		current_round = self.network.round - 1
 		if (self.network.has_converged()):
 			self.status_label.config(text = "Network converged on round " + str(current_round))
 		else:
 			self.status_label.config(text = "Round " + str(self.network.round - 1))
+
+		# Update the state entry list
+		self.update_state_entries()
 
 	def propel(self):
 		while not self.network.has_converged() and not self.paused:
@@ -242,6 +257,30 @@ class SimulationGUI:
 		self.network = network
 		self.graph = nx.complete_graph(self.network.get_number_of_nodes())
 		self.state_colours = {state: f"#{random.randrange(0x1000000):06x}" for state in self.network.get_states()}
+
+	def update_state_entries(self):
+		# print(self.state_list.get())
+		# Set the state entry list
+		if self.state_entries is None:
+			# Entries have not yet been created, add them to the array
+			self.state_entries = []
+
+			# Get the list of states, sorted in ascending order
+			states_in_network = list(self.state_colours.keys())
+			states_in_network.sort()
+			for state in states_in_network:
+				state_entry = StateEntryWidget(self.state_list, self.state_colours.get(state), state, 0)
+				state_entry.pack(fill="x")
+				self.state_entries.insert(state, state_entry)
+
+		# Adjust the number of nodes in each entry
+		network_states = self.network.get_states()
+
+		for i in range(0, len(self.state_colours.keys())):
+			self.state_entries[i].set_state_count(network_states.count(i))
+
+
+
 
 	def create_network(self):
 		# A test method to add and create a fixed network
