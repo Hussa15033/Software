@@ -129,7 +129,7 @@ class SimulationGUI:
 		self.state_list = tk.Frame(right_panel)
 		# self.state_list = tk.Scrollbar(right_panel, orient="vertical")
 		scrollbar = tk.Scrollbar(self.state_list, orient="vertical")
-		scrollbar.pack(fill="y", expand = True)
+		scrollbar.pack(side=tk.RIGHT, fill="y", expand = True)
 
 		# Graph and canvas panel
 		graph = tk.Frame(self.window, bg="#ff0000")
