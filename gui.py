@@ -90,7 +90,7 @@ class ConfigurationModal:
 		self.top.destroy()
 
 
-def show_config_modal():
+def show_config_modal(root):
 	configModal = ConfigurationModal(root)
 	root.wait_window(configModal.top)
 	print("Finished.")
@@ -118,6 +118,8 @@ class SimulationGUI:
 		self.window = tk.Tk()
 		self.window.geometry("800x500")
 		self.window.title("Population Protocol")
+
+		self.add_menu_bar()
 
 		# Top bar
 		top_bar = tk.Frame(self.window, bg="blue")
@@ -167,7 +169,7 @@ class SimulationGUI:
 
 		# Create the state list frame and pack all necessary elements
 		state_panel = tk.Frame(right_panel)
-		tk.Label(state_panel, text='States', font='10', pady=10).pack(fill="x")
+		tk.Label(right_panel, text='States', font='10', pady=10).pack(fill="x")
 		self.state_list.pack(fill="y", expand = True)
 		self.state_entries = None
 		right_panel.pack(side=tk.RIGHT, fill="y", ipadx=20)
@@ -187,6 +189,17 @@ class SimulationGUI:
 
 	def quit(self):
 		self.window.quit()
+
+	def add_menu_bar(self):
+		menu = tk.Menu(self.window)
+
+		file_menu = tk.Menu(menu, tearoff=0)
+		file_menu.add_command(label="Create protocol..", command=lambda: show_config_modal(self.window))
+		file_menu.add_separator()
+		file_menu.add_command(label="Quit", command = self.quit)
+		menu.add_cascade(label = "File", menu=file_menu)
+
+		self.window.config(menu=menu)
 
 	def show_network(self):
 		print("Show network shown")
