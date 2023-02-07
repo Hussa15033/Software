@@ -36,7 +36,7 @@ def network_config(val):
 DEFAULT_NODE_COUNT = 10
 DEFAULT_STATE_COUNT = 2
 DEFAULT_ROUNDS_COUNT = 1
-GUI_NODE_LIMIT = 100 # Maximum number of nodes allowed when using the GUI
+GUI_NODE_LIMIT = 50 # Maximum number of nodes allowed when using the GUI
 
 # Dictionary of protocol name -> protocol
 PROTOCOLS = {"threemajority": ThreeMajority}
@@ -49,13 +49,14 @@ parser.add_argument('-r', '-rounds', dest = 'rounds', help = 'The number of roun
 parser.add_argument('-n', '-nodes', dest = 'nodes', help = 'The number of nodes in the network', type=positive_number, default=DEFAULT_NODE_COUNT)
 parser.add_argument('-s', '-states', dest = 'states', help = 'The number of initial states, or a list of comma separated numbers indicating how many nodes in each state (must add up to n, the number of nodes)', type=network_config, default=[DEFAULT_STATE_COUNT])
 parser.add_argument('-p', '-protocol', dest='protocol', help='The protocol to run this network with', choices=PROTOCOLS.keys(), required=True)
+# parser.add_argument('-o', '-output', dest='output', help='The output type of the network')
 # parser.add_argument('-o')
  
 args = parser.parse_args()
 
 if (len(args.states) > 1 and sum(args.states) != args.nodes):
 	# If a state config is given, check the number of nodes in the configuration matches the nodes specified in the network
-	raise argparse.ArgumentTypeError(f"The number of nodes specified ({args.nodes}) does not match the nodes in the state configuration ({sum(args.states)})")
+	raise argparse.ArgumentTypeError(arg.states, f"The number of nodes specified ({args.nodes}) does not match the nodes in the state configuration ({sum(args.states)})")
 
 # Check if GUI is used, if nogui is specified then this also allows the rounds
 
@@ -74,16 +75,19 @@ network = PopulationNetwork(args.nodes, network_states, protocol, state_config)
 
 
 if args.nogui:
-	import time
-	start_time = time.time()
-	for j in range(0, args.rounds):
-		# print("Running with no gui..?")
-		network = PopulationNetwork(args.nodes, network_states, protocol, state_config)
-		while not network.has_converged():
-			network.run_round()
+	pass
+	# for j in range(0, args.rounds):
+	# 	# print("Running with no gui..?")
+	# 	network = PopulationNetwork(args.nodes, network_states, protocol, state_config)
+	# 	while not network.has_converged():
+	# 		network.run_round()
 
-	print("--- %s seconds ---- " % (time.time() - start_time))
 else:
+	if (args.rounds > 1):
+		parser.error("Multiple rounds may only be run without the GUI (use -nogui)")
+
+	if args.nodes > GUI_NODE_LIMIT:
+		parser.error(f"Only networks up to and including {GUI_NODE_LIMIT} nodes may be created with the GUI")
 	SimulationGUI(network)
 
 

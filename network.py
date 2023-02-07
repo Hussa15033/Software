@@ -59,7 +59,7 @@ class PopulationNetwork:
 		for i in range(len(node_configuration)):
 			self.graph.append(HonestAgent(node_configuration[i]))
 
-		print(collections.Counter([agent.state for agent in self.graph]))
+		# print(collections.Counter([agent.state for agent in self.graph]))
 		self.protocol = protocol
 		self.logger = DataLogger()
 		self.round = 0
@@ -125,7 +125,7 @@ class PopulationNetwork:
 		# print("Run round " + str(self.round))
 		# print(self.get_states())
 		# print([abg.state for abg in self.graph])
-		print(collections.Counter([agent.state for agent in self.graph]))
+		# print(collections.Counter([agent.state for agent in self.graph]))
 		# Log the new state of the network
 		self.log_graph()
 
