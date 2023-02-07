@@ -95,6 +95,21 @@ def show_config_modal():
 	root.wait_window(configModal.top)
 	print("Finished.")
 
+
+class StateEntryWidget(tk.Frame):
+	def __init__(self, parent, state_colour, state_id, state_nodes):
+		tk.Frame.__init__(self, parent)
+
+		# Create node colour dot, and add labels for texts
+		canvas = tk.Canvas(self, height=10, width=20)
+		canvas.create_oval(5, 5, 15, 15, fill = state_colour)
+		canvas.pack(side=tk.LEFT, fill="both")
+		self.state_id_label = tk.Label(self, text = "State " + str(state_id))
+		self.state_id_label.pack(side=tk.LEFT)
+
+		self.node_count_label = tk.Label(self, text = state_nodes)
+		self.node_count_label.pack(side=tk.RIGHT)
+
 class SimulationGUI:
 	def __init__(self, network):
 		self.window = tk.Tk()
@@ -105,13 +120,19 @@ class SimulationGUI:
 		top_bar = tk.Frame(self.window, bg="blue")
 
 		# Right panel
-		right_panel = tk.Frame(self.window, bg="yellow", width="300px")
+		right_panel = tk.Frame(self.window, width="300px")
+
+		# State list
+		self.state_list = tk.Scrollbar(right_panel)		
 
 		# Graph and canvas panel
 		graph = tk.Frame(self.window, bg="#ff0000")
 
 		# Round info label
 		self.status_label = tk.Label(top_bar, text = "Start network")
+
+		# List of tuples for all states of (color, id, nodes supporting)
+		self.state_node_list = []
 
 		# Add Buttons
 		# create_protocol_btn = tk.Button(top_bar, text = "Create protocol..", command = show_config_modal)
@@ -137,7 +158,13 @@ class SimulationGUI:
 		play_btn.pack()
 		pause_btn.pack()
 		step_btn.pack()
+
+		# Create the state list frame and pack all necessary elements
+		tk.Label(right_panel, text='States', font='10', pady=10).pack(fill="x")
+		self.state_list.pack(fill="x")
+		StateEntryWidget(self.state_list, "#ff0000", 0, 50).pack(fill="x")
 		right_panel.pack(side=tk.RIGHT, fill="y", ipadx=20)
+
 
 		# Graph panel
 		graph.pack(expand = True, side=tk.BOTTOM, fill = "both")
