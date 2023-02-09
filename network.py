@@ -30,7 +30,9 @@ class PopulationNetwork:
 		if number_of_states > number_of_nodes:
 			raise ValueError("Number of states must be less than number of nodes.")
 
-		# Create states
+		print("Max rounds");
+		print(max_rounds)
+		self.max_rounds = max_rounds
 
 
 		# Node configuration is the state of every single node, each element is the state 
@@ -81,6 +83,12 @@ class PopulationNetwork:
 	def run_round(self):
 		# This runs the protocol using synchronous interactions, i.e all nodes are updated
 		# (seemingly) simultaneously
+		# 
+		# self.round holds the round that is currently about to run
+		if (self.max_rounds is not None and self.round > self.max_rounds):
+			print("Network has converged in xxx. rounds")
+			return
+
 		if (self.has_converged()):
 			print("Network has converged in " + str(self.round) + " rounds")
 			exit()

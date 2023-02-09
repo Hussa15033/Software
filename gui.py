@@ -113,6 +113,7 @@ class ConfigurationModal:
 			return
 
 		self.states = int(number_states)
+
 		# Check max rounds, if empty then just use None
 		max_rounds = self.number_rounds_entry.get()
 		if max_rounds.isnumeric() and int(max_rounds) >= 1:
@@ -238,7 +239,7 @@ class SimulationGUI:
 	def show_config_modal(self):
 		config = ConfigurationModal(self.window)
 		self.window.wait_window(config.top)
-		new_network = PopulationNetwork(config.nodes, config.states, config.protocol, max_rounds = config.rounds)
+		new_network = PopulationNetwork(config.nodes, config.states, config.protocol, max_rounds = config.max_rounds)
 		self.set_network(new_network)
 
 	def show_network(self):
@@ -285,10 +286,12 @@ class SimulationGUI:
 
 		# Update the round/status label
 		current_round = self.network.round - 1
-		if (self.network.has_converged()):
-			self.status_label.config(text = "Network converged on round " + str(current_round))
+		if (self.network.max_rounds is not None and current_round >= self.network.max_rounds):
+			self.status_label.config(text = f"Maximum round of {self.network.max_rounds} reached")
+		elif (self.network.has_converged()):
+			self.status_label.config(text = f"Network converged on round {str(current_round)}")
 		else:
-			self.status_label.config(text = "Round " + str(self.network.round - 1))
+			self.status_label.config(text = f"Round {str(self.network.round - 1)}")
 
 		# Update the state entry list
 		self.update_state_entries()
@@ -308,6 +311,7 @@ class SimulationGUI:
 
 	def set_network(self, network):
 		# This method clears any current network, and resets the GUI to load a new network
+		self.status_label.config(text = "Start network")
 		self.network = network
 
 		# Clear state entry list GUI
