@@ -4,6 +4,7 @@ from protocols.protocol import PopulationProtocol
 from protocols.three_majority import ThreeMajority
 import networkx as nx
 from gui import SimulationGUI
+import matplotlib.pyplot as plt
 
 
 # The parser for commandline arguments for the population protocols
@@ -83,15 +84,48 @@ network = PopulationNetwork(args.nodes, network_states, protocol, state_config)
 
 if args.nogui:
 	# pass
-	import time
-	start = time.time()
 	for j in range(0, args.rounds):
 		# print("Running with no gui..?")
 		network = PopulationNetwork(args.nodes, network_states, protocol, state_config)
 		while not network.has_converged():
 			network.run_round()
 
-	print(time.time() - start)
+
+	data = network.logger.data
+
+	# X value will show the round number
+	x = list(data.keys())
+
+	# 0: [0, 1, 0]
+	# 1: [1, 1, 0]
+	# 2: [1, 1, 1]
+	# Output:
+	# [0, 1, 2]
+	# [2, 1, 0]
+	# [1, 2, 3]
+
+	# Y values for each state
+	# Initial state of the network is stored in round 0
+	initial_states = list(set(data.get(0, [])))
+
+	for state in initial_states:
+		y = []
+		for rnd in data.keys():
+			count = data.get(rnd).count(state)
+			y.append(count)
+
+		plt.plot(x, y)
+
+	# y1 = ['1000', '13k', '26k', '42k', '60k', '81k']
+	# y2 = ['1000', '13k', '27k', '43k', '63k', '85k']
+
+	# plt.plot(x, y1)
+	# plt.plot(x, y2, '-.')
+
+	plt.xlabel("Round number")
+	plt.ylabel("Node count")
+	plt.title('States in network')
+	plt.show()
 
 else:
 	if (args.rounds > 1):

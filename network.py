@@ -30,8 +30,6 @@ class PopulationNetwork:
 		if number_of_states > number_of_nodes:
 			raise ValueError("Number of states must be less than number of nodes.")
 
-		print("Max rounds");
-		print(max_rounds)
 		self.max_rounds = max_rounds
 
 
