@@ -7,8 +7,11 @@ import matplotlib.pyplot as plt
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
+# from parser import GUI_NODE_LIMIT
 import numpy as np
 # from protocols import ThreeMajority, ThreeMajorityConverged
+# from protocols import ThreeMajority, PopulationProtocol
+from protocols.protocol import PopulationProtocol
 from protocols.three_majority import ThreeMajority
 # import pylab as py
 # from agents.honest_agent import HonestAgent
@@ -48,13 +51,18 @@ import threading
 # pop.run_1_round()
 # pop.update_graph()
 
+GUI_NODE_LIMIT = 50
 class ConfigurationModal:
 	def __init__(self, parent):
 		# Setup validation variable -> Modal is not validated intially
 		self.validated = False
+		self.nodes = None
+		self.states = None
+		self.rounds = None
 
 		self.top = tk.Toplevel(parent)
 		self.top.grab_set()
+		self.top.focus_set()
 		tk.Label(self.top, text='Number of nodes:').pack()
 		self.number_nodes_entry = tk.Entry(self.top)
 		self.number_nodes_entry.pack()
@@ -63,10 +71,6 @@ class ConfigurationModal:
 		self.number_states_entry = tk.Entry(self.top)
 		self.number_states_entry.pack()
 
-		tk.Label(self.top, text='Number of faulty nodes:').pack()
-		self.number_faulty_nodes_entry = tk.Entry(self.top)
-		self.number_faulty_nodes_entry.pack()
-
 		tk.Label(self.top, text='Max number of rounds (optional):').pack()
 		self.number_rounds_entry = tk.Entry(self.top)
 		self.number_rounds_entry.pack()
@@ -74,27 +78,58 @@ class ConfigurationModal:
 		tk.Label(self.top, text='Protocol:').pack()
 
 		# Protocol selection menu
-		protocol_list = ["voter", "2-choice", "3-majority"]
+		self.protocol_dict = {protocol_class.get_protocol_name(): protocol_class for protocol_class in PopulationProtocol.__subclasses__()}
+		protocol_list = list(self.protocol_dict.keys())
 
-		chosen_protocol = tk.StringVar(self.top)
-		chosen_protocol.set("Select protocol")
+		self.chosen_protocol = tk.StringVar(self.top)
+		self.chosen_protocol.set("Select protocol")
 
-		w = tk.OptionMenu(self.top, chosen_protocol, *protocol_list)
-		w.pack()
+		protocol_option = tk.OptionMenu(self.top, self.chosen_protocol, *protocol_list)
+		protocol_option.pack()
 
-		tk.Button(self.top, text='Simulate!', command=self.is_valid).pack()
+		tk.Button(self.top, text='Simulate!', command=self.validate).pack()
 
-	def is_valid(self):
+	def validate(self):
+		print("LOL TEST1")
 		# Check all inputs are valid, if so destroy modal
-		# otherwise show an alert for the relevant input
+		# otherwise show an alert for the relevant incorrect input(s)
+		# return self.number_nodes_entry.get()
+		
+		# Assume all inputs are valid
+		is_valid = True
+
+		# Check the nodes
+		number_nodes = self.number_nodes_entry.get()
+		if (not number_nodes.isnumeric()) or int(number_nodes) <= 0 or int(number_nodes) > GUI_NODE_LIMIT:
+			tk.messagebox.showerror("Error", f"Node input is invalid. Please enter a number between 1 and {GUI_NODE_LIMIT}")
+			return
+
+		self.nodes = int(number_nodes)
+
+		# Check states
+		number_states = self.number_states_entry.get()
+		if (not number_states.isnumeric()) or int(number_states) > self.nodes or int(number_states) < 1:
+			tk.messagebox.showerror("Error", f"Number of states must between 1 and the number of nodes")
+			return
+
+		self.states = int(number_states)
+		# Check max rounds, if empty then just use None
+		max_rounds = self.number_rounds_entry.get()
+		if max_rounds.isnumeric() and int(max_rounds) >= 1:
+			self.max_rounds = int(max_rounds)
+		elif max_rounds == "":
+			self.max_rounds = None
+		else:
+			tk.messagebox.showerror("Error", f"Please enter a valid number of rounds, or leave blank for convergence")
+			return
+		
+		# Check a valid protocol has been selected
+		self.protocol = self.protocol_dict.get(self.chosen_protocol.get(), None)
+		if self.protocol is None:
+			tk.messagebox.showerror("Error", "Please select a valid protocol")
+			return
+
 		self.top.destroy()
-
-
-def show_config_modal(root):
-	configModal = ConfigurationModal(root)
-	root.wait_window(configModal.top)
-	print("Finished.")
-
 
 class StateEntryWidget(tk.Frame):
 	def __init__(self, parent, state_colour, state_id, state_nodes):
@@ -144,7 +179,7 @@ class SimulationGUI:
 
 		# Add Buttons
 		# create_protocol_btn = tk.Button(top_bar, text = "Create protocol..", command = show_config_modal)
-		create_protocol_btn = tk.Button(graph, text = "Create protocol..", command = self.create_network)
+		create_protocol_btn = tk.Button(graph, text = "Create protocol..", command = self.show_config_modal)
 		play_btn = tk.Button(right_panel, text="Play", command = self.start)
 		pause_btn = tk.Button(right_panel, text="Pause", command = self.pause)
 		step_btn = tk.Button(right_panel, text = "Step", command = self.step)
@@ -156,7 +191,6 @@ class SimulationGUI:
 		# todo Do not pack canvas widget yet
 		self.canvas.get_tk_widget().pack(fill = "both", expand = True)
 		# create_protocol_btn.pack()
-
 		# Top bar packing
 		# create_protocol_btn.pack(side=tk.LEFT)
 		self.status_label.pack(side=tk.LEFT)
@@ -171,7 +205,7 @@ class SimulationGUI:
 		state_panel = tk.Frame(right_panel)
 		tk.Label(right_panel, text='States', font='10', pady=10).pack(fill="x")
 		self.state_list.pack(fill="y", expand = True)
-		self.state_entries = None
+		
 		right_panel.pack(side=tk.RIGHT, fill="y", ipadx=20)
 		state_panel.pack(fill="both", expand = True)
 
@@ -179,9 +213,9 @@ class SimulationGUI:
 		# Graph panel
 		graph.pack(expand = True, side=tk.BOTTOM, fill = "both")
 
+		self.state_entries = None
 		self.set_network(network)
-		self.update_state_entries()
-		self.show_network()
+		
 		self.paused = True
 		self.window.bind("<<update_network>>", self.show_network_evt)
 		self.window.protocol("WM_DELETE_WINDOW", self.quit)
@@ -194,12 +228,18 @@ class SimulationGUI:
 		menu = tk.Menu(self.window)
 
 		file_menu = tk.Menu(menu, tearoff=0)
-		file_menu.add_command(label="Create protocol..", command=lambda: show_config_modal(self.window))
+		file_menu.add_command(label="Create protocol..", command=lambda: self.show_config_modal())
 		file_menu.add_separator()
 		file_menu.add_command(label="Quit", command = self.quit)
 		menu.add_cascade(label = "File", menu=file_menu)
 
 		self.window.config(menu=menu)
+
+	def show_config_modal(self):
+		config = ConfigurationModal(self.window)
+		self.window.wait_window(config.top)
+		new_network = PopulationNetwork(config.nodes, config.states, config.protocol, max_rounds = config.rounds)
+		self.set_network(new_network)
 
 	def show_network(self):
 		print("Show network shown")
@@ -267,9 +307,21 @@ class SimulationGUI:
 		self.paused = True
 
 	def set_network(self, network):
+		# This method clears any current network, and resets the GUI to load a new network
 		self.network = network
+
+		# Clear state entry list GUI
+		if self.state_entries is not None:
+			for i in range(len(self.state_entries)):
+				# Delete any previous entry widgets
+				self.state_entries[i].pack_forget()
+			self.state_entries = None
+
+		# Create graph and coloured nodes
 		self.graph = nx.complete_graph(self.network.get_number_of_nodes())
 		self.state_colours = {state: f"#{random.randrange(0x1000000):06x}" for state in self.network.get_states()}
+		self.update_state_entries()
+		self.show_network()
 
 	def update_state_entries(self):
 		# print(self.state_list.get())

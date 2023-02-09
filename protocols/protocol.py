@@ -1,12 +1,16 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractstaticmethod, abstractclassmethod
 
 class PopulationProtocol(ABC):
-	@classmethod
-	@abstractmethod
+	@abstractclassmethod
 	def run(state, neighbour_states):
 		pass
 
-	@staticmethod
-	@abstractmethod
+	# @staticmethod
+	@abstractclassmethod
 	def is_converged(states):
+		pass
+
+	@abstractclassmethod
+	# @classmethod
+	def get_protocol_name():
 		pass

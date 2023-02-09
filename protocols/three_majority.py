@@ -24,3 +24,6 @@ class ThreeMajority(PopulationProtocol):
 			return True
 
 		return False
+
+	def get_protocol_name():
+		return "threemajority"

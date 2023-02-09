@@ -24,7 +24,7 @@ from datalogger import DataLogger
 # nodes, we can simply select any node when looking for neighbours as all nodes
 # neighbour each other
 class PopulationNetwork:
-	def __init__(self, number_of_nodes, number_of_states, protocol, state_config = None):
+	def __init__(self, number_of_nodes, number_of_states, protocol, state_config = None, max_rounds = None):
 		# The network graph, list of agents
 
 		if number_of_states > number_of_nodes:
