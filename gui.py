@@ -3,6 +3,7 @@ import random
 import collections
 import agents
 import matplotlib
+from analysers import basic_analysis
 import matplotlib.pyplot as plt
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -170,7 +171,10 @@ class SimulationGUI:
 		scrollbar.pack(side=tk.RIGHT, fill="y", expand = True)
 
 		# Graph and canvas panel
-		graph = tk.Frame(self.window, bg="#ff0000")
+		self.graph_window = tk.Frame(self.window, bg="#ff0000")
+		
+		# Pack all components
+		# todo Do not pack canvas widget yet
 
 		# Round info label
 		self.status_label = tk.Label(top_bar, text = "Start network")
@@ -180,17 +184,14 @@ class SimulationGUI:
 
 		# Add Buttons
 		# create_protocol_btn = tk.Button(top_bar, text = "Create protocol..", command = show_config_modal)
-		create_protocol_btn = tk.Button(graph, text = "Create protocol..", command = self.show_config_modal)
+		create_protocol_btn = tk.Button(self.graph_window, text = "Create protocol..", command = self.show_config_modal)
 		play_btn = tk.Button(right_panel, text="Play", command = self.start)
 		pause_btn = tk.Button(right_panel, text="Pause", command = self.pause)
 		step_btn = tk.Button(right_panel, text = "Step", command = self.step)
+		view_data_btn = tk.Button(right_panel, text = "View data", command = self.show_basic_analysis)
 
-		f = plt.figure(figsize=(10, 5), dpi=100)
-		self.canvas = FigureCanvasTkAgg(f, graph)
-
+		
 		# Pack all components
-		# todo Do not pack canvas widget yet
-		self.canvas.get_tk_widget().pack(fill = "both", expand = True)
 		# create_protocol_btn.pack()
 		# Top bar packing
 		# create_protocol_btn.pack(side=tk.LEFT)
@@ -201,6 +202,8 @@ class SimulationGUI:
 		play_btn.pack()
 		pause_btn.pack()
 		step_btn.pack()
+		view_data_btn.pack()
+	
 
 		# Create the state list frame and pack all necessary elements
 		state_panel = tk.Frame(right_panel)
@@ -212,7 +215,10 @@ class SimulationGUI:
 
 
 		# Graph panel
-		graph.pack(expand = True, side=tk.BOTTOM, fill = "both")
+		self.graph_figure = plt.figure(1, figsize=(10, 5), dpi=100)
+		self.canvas = FigureCanvasTkAgg(self.graph_figure, self.graph_window)
+		self.canvas.get_tk_widget().pack(fill = "both", expand = True)
+		self.graph_window.pack(expand = True, side=tk.BOTTOM, fill = "both")
 
 		self.state_entries = None
 		self.set_network(network)
@@ -224,6 +230,12 @@ class SimulationGUI:
 
 	def quit(self):
 		self.window.quit()
+
+	def show_basic_analysis(self):
+		self.wait_round()
+		self.close_extra_figures()
+		analyser = basic_analysis(self.network.logger, self.state_colours)
+		
 
 	def add_menu_bar(self):
 		menu = tk.Menu(self.window)
@@ -257,6 +269,8 @@ class SimulationGUI:
 		self.canvas.draw()
 
 	def start(self):
+		# Close any open figures
+		self.close_extra_figures()
 		self.paused = False
 
 		# Start and simulate the network
@@ -266,7 +280,9 @@ class SimulationGUI:
 		self.running_thread = threading.Thread(target = self.propel)
 		self.running_thread.start()
 
-	def step(self):
+	def wait_round(self):
+		# This method waits for the current round to finish processing (if it is running)
+		# and then pauses the network
 		self.paused = True
 		# Wait on the running thread if it exists
 		try:
@@ -275,14 +291,21 @@ class SimulationGUI:
 		except:
 			# If the thread doesn't exist yet, it is irrelevant to process this exception
 			pass
+
+	def close_extra_figures(self):
+		# If there multiple open figures, close all other figures, except the current open one
+		for i in range(1, len(plt.get_fignums())):
+			plt.close()
+
+	def step(self):
+		self.close_extra_figures()
+		self.wait_round()
 			
 		self.network.run_round()
 		self.window.event_generate("<<update_network>>", when = "tail")
 
 	def show_network_evt(self, evt):
 		# Update all necessary GUI elements, including network
-		# Show the network
-		self.show_network()
 
 		# Update the round/status label
 		current_round = self.network.round - 1
@@ -295,6 +318,9 @@ class SimulationGUI:
 
 		# Update the state entry list
 		self.update_state_entries()
+
+		# Show the network
+		self.show_network()
 
 	def propel(self):
 		while not self.network.has_converged() and not self.paused:

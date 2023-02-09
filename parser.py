@@ -57,6 +57,10 @@ parser.add_argument('-s', '-states', dest = 'states', help = 'The number of init
 parser.add_argument('-p', '-protocol', dest='protocol', help='The protocol to run this network with', choices=PROTOCOLS.keys(), required=True)
 # parser.add_argument('-o', '-output', dest='output', help='The output type of the network')
 # parser.add_argument('-o')
+# 
+
+# Parser verifies arguments are correct for ALL analysers
+# Each analyser then uses whatever arguments it requires from the parser
 
 args = parser.parse_args()
 
@@ -115,6 +119,10 @@ if args.nogui:
 			y.append(count)
 
 		plt.plot(x, y)
+		if (len(initial_states) <= 5):
+			plt.set_label(f'State {state}')
+
+	plt.legend()
 
 	# y1 = ['1000', '13k', '26k', '42k', '60k', '81k']
 	# y2 = ['1000', '13k', '27k', '43k', '63k', '85k']
