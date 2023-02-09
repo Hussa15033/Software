@@ -78,6 +78,11 @@ class PopulationNetwork:
 		self.logger.log_graph(self.round, self.get_states())
 		self.round += 1
 
+	def has_finished(self):
+		# Check if either the network has either converged
+		# or the maximum round has been reached
+		return (self.max_rounds is not None and self.round > self.max_rounds) or self.has_converged()
+
 	def run_round(self):
 		# This runs the protocol using synchronous interactions, i.e all nodes are updated
 		# (seemingly) simultaneously

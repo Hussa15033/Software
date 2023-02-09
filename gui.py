@@ -323,7 +323,7 @@ class SimulationGUI:
 		self.show_network()
 
 	def propel(self):
-		while not self.network.has_converged() and not self.paused:
+		while not self.network.has_finished() and not self.paused:
 			self.network.run_round()
 			self.window.event_generate("<<update_network>>", when="tail")
 			time.sleep(1)

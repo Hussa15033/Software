@@ -34,8 +34,7 @@ def basic_analysis(data_logger, state_colours = None):
 
 		if (len(initial_states) <= 5):
 			line.set_label(f'State {state}')
-
-	plt.legend()
+			plt.legend()
 
 	# y1 = ['1000', '13k', '26k', '42k', '60k', '81k']
 	# y2 = ['1000', '13k', '27k', '43k', '63k', '85k']
