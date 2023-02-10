@@ -5,7 +5,7 @@ from protocols.three_majority import ThreeMajority
 import networkx as nx
 from gui import SimulationGUI
 import matplotlib.pyplot as plt
-
+from analysers import BasicAnalyser, BiasAnalyser
 
 # The parser for commandline arguments for the population protocols
 # Options:
@@ -15,6 +15,23 @@ import matplotlib.pyplot as plt
 # -s, -states : int or list of ints ; The number of states in the network (< -n) or a list of how many nodes in each state initially
 # 				(must add up to -n)
 # -o, -output : string ; The output of the function, currently unknown options
+
+# Constants
+DEFAULT_NODE_COUNT = 10
+DEFAULT_STATE_COUNT = 2
+DEFAULT_ROUNDS_COUNT = 1
+
+# Maximum number of nodes allowed when using the GUI
+GUI_NODE_LIMIT = 50
+
+# Dictionary of protocol name -> protocol
+PROTOCOLS = {protocol_class.get_protocol_name(): protocol_class for protocol_class in PopulationProtocol.__subclasses__()}
+
+# Different types of analysis that can be performed name -> callback
+ANALYSERS = {
+	"basic" : BasicAnalyser,
+	"bias" : BiasAnalyser
+}
 
 def positive_number(val):
 	if int(val) <= 0:
@@ -34,19 +51,6 @@ def network_config(val):
 
 	return [int(a) for a in split_list]
 
-subs = PopulationProtocol.__subclasses__()
-for i in range(len(subs)):
-	cl = subs[i]
-	print(cl.get_protocol_name())
-
-DEFAULT_NODE_COUNT = 10
-DEFAULT_STATE_COUNT = 2
-DEFAULT_ROUNDS_COUNT = 1
-GUI_NODE_LIMIT = 50 # Maximum number of nodes allowed when using the GUI
-
-# Dictionary of protocol name -> protocol
-PROTOCOLS = {protocol_class.get_protocol_name(): protocol_class for protocol_class in PopulationProtocol.__subclasses__()}
-
 parser = argparse.ArgumentParser(prog = 'Population Protocol Visualiser',
 								description = 'Analyse and visualise population protocol networks')
 
@@ -55,7 +59,7 @@ parser.add_argument('-r', '-rounds', dest = 'rounds', help = 'The number of roun
 parser.add_argument('-n', '-nodes', dest = 'nodes', help = 'The number of nodes in the network', type=positive_number, default=DEFAULT_NODE_COUNT)
 parser.add_argument('-s', '-states', dest = 'states', help = 'The number of initial states, or a list of comma separated numbers indicating how many nodes in each state (must add up to n, the number of nodes)', type=network_config, default=[DEFAULT_STATE_COUNT])
 parser.add_argument('-p', '-protocol', dest='protocol', help='The protocol to run this network with', choices=PROTOCOLS.keys(), required=True)
-# parser.add_argument('-o', '-output', dest='output', help='The output type of the network')
+parser.add_argument('-o', '-output', dest='output', help='The output data for the network', choices = ANALYSERS.keys(), default = "basic")
 # parser.add_argument('-o')
 # 
 
@@ -87,52 +91,13 @@ network = PopulationNetwork(args.nodes, network_states, protocol, state_config)
 
 
 if args.nogui:
-	# pass
-	for j in range(0, args.rounds):
-		# print("Running with no gui..?")
-		network = PopulationNetwork(args.nodes, network_states, protocol, state_config)
-		while not network.has_converged():
-			network.run_round()
+	# Get the analyser that was selected
+	analyser_type = ANALYSERS.get(args.output, None)
+	if analyser_type is None:
+		print("An unknown analyser was selected")
 
-
-	data = network.logger.data
-
-	# X value will show the round number
-	x = list(data.keys())
-
-	# 0: [0, 1, 0]
-	# 1: [1, 1, 0]
-	# 2: [1, 1, 1]
-	# Output:
-	# [0, 1, 2]
-	# [2, 1, 0]
-	# [1, 2, 3]
-
-	# Y values for each state
-	# Initial state of the network is stored in round 0
-	initial_states = list(set(data.get(0, [])))
-
-	for state in initial_states:
-		y = []
-		for rnd in data.keys():
-			count = data.get(rnd).count(state)
-			y.append(count)
-
-		plt.plot(x, y)
-		if (len(initial_states) <= 5):
-			plt.set_label(f'State {state}')
-
-	plt.legend()
-
-	# y1 = ['1000', '13k', '26k', '42k', '60k', '81k']
-	# y2 = ['1000', '13k', '27k', '43k', '63k', '85k']
-
-	# plt.plot(x, y1)
-	# plt.plot(x, y2, '-.')
-
-	plt.xlabel("Round number")
-	plt.ylabel("Node count")
-	plt.title('States in network')
+	analyser = analyser_type(args.nodes, network_states, state_config, protocol, args.rounds)
+	analyser.analyse()
 	plt.show()
 
 else:
