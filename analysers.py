@@ -11,8 +11,13 @@ class Analyser(ABC):
 		self.rounds = rounds
 
 	@abstractmethod
-	def analyse():
+	def analyse(self):
 		pass
+
+	# Override this method to display info about the analyser
+	@staticmethod
+	def info():
+		return "An analyser for analysing population networks"
 
 def basic_analysis(data_logger, state_colours = None):
 	# A basic analyser that takes a round of data logs and produces a
@@ -62,6 +67,9 @@ class BasicAnalyser(Analyser):
 
 		print(f"Finished, network converged on round {network.round - 1}")
 		basic_analysis(network.logger)
+
+	def info():
+		return "A basic analyser showing the number of nodes in each state over each round"
 
 # An analyser that slowly increases the bias and plots a graph of the probablities over time
 class BiasAnalyser(Analyser):
@@ -123,3 +131,6 @@ class BiasAnalyser(Analyser):
 		plt.ylabel("Probability of convergence")
 		plt.title(f"Probability change with bias")
 		f.show()
+
+	def info():
+		return "An analyser that shows the probability of convergence in a 2 state network as the bias increases"
