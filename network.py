@@ -94,7 +94,6 @@ class PopulationNetwork:
 
 		if (self.has_converged()):
 			print("Network has converged in " + str(self.round) + " rounds")
-			exit()
 			return
 		
 		# Should copy the agents states
