@@ -1,4 +1,5 @@
 import tkinter as tk
+import customtkinter as ctk
 import random
 import collections
 import agents
@@ -52,6 +53,9 @@ import threading
 # pop.run_1_round()
 # pop.update_graph()
 
+ctk.set_appearance_mode("light")
+ctk.set_default_color_theme("blue")
+
 GUI_NODE_LIMIT = 50
 class ConfigurationModal:
 	def __init__(self, parent):
@@ -61,34 +65,34 @@ class ConfigurationModal:
 		self.states = None
 		self.rounds = None
 
-		self.top = tk.Toplevel(parent)
+		self.top = ctk.CTkToplevel(parent)
 		self.top.grab_set()
 		self.top.focus_set()
-		tk.Label(self.top, text='Number of nodes:').pack()
-		self.number_nodes_entry = tk.Entry(self.top)
+		ctk.CTkLabel(self.top, text='Number of nodes:').pack()
+		self.number_nodes_entry = ctk.CTkEntry(self.top)
 		self.number_nodes_entry.pack()
 
-		tk.Label(self.top, text='Max number of states:').pack()
-		self.number_states_entry = tk.Entry(self.top)
+		ctk.CTkLabel(self.top, text='Max number of states:').pack()
+		self.number_states_entry = ctk.CTkEntry(self.top)
 		self.number_states_entry.pack()
 
-		tk.Label(self.top, text='Max number of rounds (optional):').pack()
-		self.number_rounds_entry = tk.Entry(self.top)
+		ctk.CTkLabel(self.top, text='Max number of rounds (optional):').pack()
+		self.number_rounds_entry = ctk.CTkEntry(self.top)
 		self.number_rounds_entry.pack()
 
-		tk.Label(self.top, text='Protocol:').pack()
+		ctk.CTkLabel(self.top, text='Protocol:').pack()
 
 		# Protocol selection menu
 		self.protocol_dict = {protocol_class.get_protocol_name(): protocol_class for protocol_class in PopulationProtocol.__subclasses__()}
 		protocol_list = list(self.protocol_dict.keys())
 
-		self.chosen_protocol = tk.StringVar(self.top)
+		self.chosen_protocol = ctk.CTkStringVar(self.top)
 		self.chosen_protocol.set("Select protocol")
 
-		protocol_option = tk.OptionMenu(self.top, self.chosen_protocol, *protocol_list)
+		protocol_option = ctk.CTkOptionMenu(self.top, self.chosen_protocol, *protocol_list)
 		protocol_option.pack()
 
-		tk.Button(self.top, text='Simulate!', command=self.validate).pack()
+		ctk.CTkButton(self.top, text='Simulate!', command=self.validate).pack()
 
 	def validate(self):
 		print("LOL TEST1")
@@ -102,7 +106,7 @@ class ConfigurationModal:
 		# Check the nodes
 		number_nodes = self.number_nodes_entry.get()
 		if (not number_nodes.isnumeric()) or int(number_nodes) <= 0 or int(number_nodes) > GUI_NODE_LIMIT:
-			tk.messagebox.showerror("Error", f"Node input is invalid. Please enter a number between 1 and {GUI_NODE_LIMIT}")
+			ctk.CTkmessagebox.showerror("Error", f"Node input is invalid. Please enter a number between 1 and {GUI_NODE_LIMIT}")
 			return
 
 		self.nodes = int(number_nodes)
@@ -110,7 +114,7 @@ class ConfigurationModal:
 		# Check states
 		number_states = self.number_states_entry.get()
 		if (not number_states.isnumeric()) or int(number_states) > self.nodes or int(number_states) < 1:
-			tk.messagebox.showerror("Error", f"Number of states must between 1 and the number of nodes")
+			ctk.CTkmessagebox.showerror("Error", f"Number of states must between 1 and the number of nodes")
 			return
 
 		self.states = int(number_states)
@@ -122,80 +126,80 @@ class ConfigurationModal:
 		elif max_rounds == "":
 			self.max_rounds = None
 		else:
-			tk.messagebox.showerror("Error", f"Please enter a valid number of rounds, or leave blank for convergence")
+			ctk.CTkmessagebox.showerror("Error", f"Please enter a valid number of rounds, or leave blank for convergence")
 			return
 		
 		# Check a valid protocol has been selected
 		self.protocol = self.protocol_dict.get(self.chosen_protocol.get(), None)
 		if self.protocol is None:
-			tk.messagebox.showerror("Error", "Please select a valid protocol")
+			ctk.CTkmessagebox.showerror("Error", "Please select a valid protocol")
 			return
 
 		self.top.destroy()
 
-class StateEntryWidget(tk.Frame):
+class StateEntryWidget(ctk.CTkFrame):
 	def __init__(self, parent, state_colour, state_id, state_nodes):
-		tk.Frame.__init__(self, parent)
+		ctk.CTkFrame.__init__(self, parent)
 
 		# Create node colour dot, and add labels for texts
-		canvas = tk.Canvas(self, height=10, width=20)
+		canvas = ctk.CTkCanvas(self, height=10, width=20)
 		canvas.create_oval(5, 5, 15, 15, fill = state_colour)
-		canvas.pack(side=tk.LEFT, fill="both")
-		self.state_id_label = tk.Label(self, text = "State " + str(state_id))
-		self.state_id_label.pack(side=tk.LEFT, fill = "x", expand = True)
+		canvas.pack(side=ctk.LEFT, fill="both")
+		self.state_id_label = ctk.CTkLabel(self, text = "State " + str(state_id))
+		self.state_id_label.pack(side=ctk.LEFT, fill = "x", expand = True)
 
-		self.node_count_label = tk.Label(self, text = state_nodes, anchor="e")
-		self.node_count_label.pack(side=tk.RIGHT, fill = "both", expand = True)
+		self.node_count_label = ctk.CTkLabel(self, text = state_nodes, anchor="e")
+		self.node_count_label.pack(side=ctk.RIGHT, fill = "both", expand = True)
 
 	def set_state_count(self, count):
-		self.node_count_label.config(text = count)
+		self.node_count_label.configure(text = count)
 
 class SimulationGUI:
 	def __init__(self, network):
-		self.window = tk.Tk()
+		self.window = ctk.CTk()
 		self.window.geometry("800x500")
 		self.window.title("Population Protocol")
 
 		self.add_menu_bar()
 
 		# Top bar
-		top_bar = tk.Frame(self.window, bg="blue")
+		top_bar = ctk.CTkFrame(self.window, fg_color="blue")
 
 		# Right panel
-		right_panel = tk.Frame(self.window, width="300px")
+		right_panel = ctk.CTkFrame(self.window, width=50)
 
 		# State list
-		self.state_list = tk.Frame(right_panel)
-		# self.state_list = tk.Scrollbar(right_panel, orient="vertical")
-		scrollbar = tk.Scrollbar(self.state_list, orient="vertical")
-		scrollbar.pack(side=tk.RIGHT, fill="y", expand = True)
+		self.state_list = ctk.CTkScrollableFrame(right_panel)
+		# self.state_list = ctk.CTkScrollbar(right_panel, orient="vertical")
+		# scrollbar = ctk.CTkScrollbar(self.state_list, orient="vertical")
+		# scrollbar.pack(side=ctk.RIGHT, fill="y", expand = True)
 
 		# Graph and canvas panel
-		self.graph_window = tk.Frame(self.window, bg="#ff0000")
+		self.graph_window = ctk.CTkFrame(self.window, fg_color="#ff0000")
 		
 		# Pack all components
 		# todo Do not pack canvas widget yet
 
 		# Round info label
-		self.status_label = tk.Label(top_bar, text = "Start network")
+		self.status_label = ctk.CTkLabel(top_bar, text = "Start network")
 
 		# List of tuples for all states of (color, id, nodes supporting)
 		self.state_node_list = []
 
 		# Add Buttons
-		# create_protocol_btn = tk.Button(top_bar, text = "Create protocol..", command = show_config_modal)
-		create_protocol_btn = tk.Button(self.graph_window, text = "Create protocol..", command = self.show_config_modal)
-		play_btn = tk.Button(right_panel, text="Play", command = self.start)
-		pause_btn = tk.Button(right_panel, text="Pause", command = self.pause)
-		step_btn = tk.Button(right_panel, text = "Step", command = self.step)
-		view_data_btn = tk.Button(right_panel, text = "View data", command = self.show_basic_analysis)
+		# create_protocol_btn = ctk.CTkButton(top_bar, text = "Create protocol..", command = show_config_modal)
+		create_protocol_btn = ctk.CTkButton(self.graph_window, text = "Create protocol..", command = self.show_config_modal)
+		play_btn = ctk.CTkButton(right_panel, text="Play", command = self.start)
+		pause_btn = ctk.CTkButton(right_panel, text="Pause", command = self.pause)
+		step_btn = ctk.CTkButton(right_panel, text = "Step", command = self.step)
+		view_data_btn = ctk.CTkButton(right_panel, text = "View data", command = self.show_basic_analysis)
 
 		
 		# Pack all components
 		# create_protocol_btn.pack()
 		# Top bar packing
-		# create_protocol_btn.pack(side=tk.LEFT)
-		self.status_label.pack(side=tk.LEFT)
+		# create_protocol_btn.pack(side=ctk.LEFT)
+		self.status_label.pack(side=ctk.LEFT)
 		top_bar.pack(fill = "x")
 
 		# Right panel
@@ -206,11 +210,11 @@ class SimulationGUI:
 	
 
 		# Create the state list frame and pack all necessary elements
-		state_panel = tk.Frame(right_panel)
-		tk.Label(right_panel, text='States', font='10', pady=10).pack(fill="x")
+		state_panel = ctk.CTkFrame(right_panel)
+		ctk.CTkLabel(right_panel, text='States', pady=10).pack(fill="x")
 		self.state_list.pack(fill="y", expand = True)
 		
-		right_panel.pack(side=tk.RIGHT, fill="y", ipadx=20)
+		right_panel.pack(side=ctk.RIGHT, fill="y", ipadx=20)
 		state_panel.pack(fill="both", expand = True)
 
 
@@ -218,7 +222,7 @@ class SimulationGUI:
 		self.graph_figure = plt.figure(1, figsize=(10, 5), dpi=100)
 		self.canvas = FigureCanvasTkAgg(self.graph_figure, self.graph_window)
 		self.canvas.get_tk_widget().pack(fill = "both", expand = True)
-		self.graph_window.pack(expand = True, side=tk.BOTTOM, fill = "both")
+		self.graph_window.pack(expand = True, side=ctk.BOTTOM, fill = "both")
 
 		self.state_entries = None
 		self.set_network(network)
@@ -310,11 +314,11 @@ class SimulationGUI:
 		# Update the round/status label
 		current_round = self.network.round - 1
 		if (self.network.max_rounds is not None and current_round >= self.network.max_rounds):
-			self.status_label.config(text = f"Maximum round of {self.network.max_rounds} reached")
+			self.status_label.configure(text = f"Maximum round of {self.network.max_rounds} reached")
 		elif (self.network.has_converged()):
-			self.status_label.config(text = f"Network converged on round {str(current_round)}")
+			self.status_label.configure(text = f"Network converged on round {str(current_round)}")
 		else:
-			self.status_label.config(text = f"Round {str(self.network.round - 1)}")
+			self.status_label.configure(text = f"Round {str(self.network.round - 1)}")
 
 		# Update the state entry list
 		self.update_state_entries()
@@ -337,7 +341,7 @@ class SimulationGUI:
 
 	def set_network(self, network):
 		# This method clears any current network, and resets the GUI to load a new network
-		self.status_label.config(text = "Start network")
+		self.status_label.configure(text = "Start network")
 		self.network = network
 
 		# Clear state entry list GUI

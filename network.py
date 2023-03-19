@@ -21,7 +21,7 @@ from datalogger import DataLogger
 
 # A network is simply a list of nodes/agents, each with a specified state
 # Since the network is fully connected, we do not have to store the edges between the
-# nodes, we can simply select any node when looking for neighbours as all nodes
+# nodes, we can simply select any other node when looking for neighbours as all nodes
 # neighbour each other
 class PopulationNetwork:
 	def __init__(self, number_of_nodes, number_of_states, protocol, state_config = None, max_rounds = None):
@@ -31,7 +31,6 @@ class PopulationNetwork:
 			raise ValueError("Number of states must be less than number of nodes.")
 
 		self.max_rounds = max_rounds
-
 
 		# Node configuration is the state of every single node, each element is the state 
 		# and the index gives which node is in that state initially
