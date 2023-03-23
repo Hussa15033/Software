@@ -86,10 +86,12 @@ class ConfigurationModal:
 		self.protocol_dict = {protocol_class.get_protocol_name(): protocol_class for protocol_class in PopulationProtocol.__subclasses__()}
 		protocol_list = list(self.protocol_dict.keys())
 
-		self.chosen_protocol = ctk.CTkStringVar(self.top)
+		self.chosen_protocol = ctk.StringVar(self.top)
 		self.chosen_protocol.set("Select protocol")
 
-		protocol_option = ctk.CTkOptionMenu(self.top, self.chosen_protocol, *protocol_list)
+		protocol_option = ctk.CTkOptionMenu(master=self.top,
+											values=protocol_list,
+											variable=self.chosen_protocol)
 		protocol_option.pack()
 
 		ctk.CTkButton(self.top, text='Simulate!', command=self.validate).pack()
