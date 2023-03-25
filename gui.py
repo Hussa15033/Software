@@ -91,7 +91,9 @@ class ConfigurationModal:
 
 		protocol_option = ctk.CTkOptionMenu(master=self.top,
 											values=protocol_list,
-											variable=self.chosen_protocol)
+											variable=self.chosen_protocol,
+											fg_color="#fff",
+											text_color="#000")
 		protocol_option.pack()
 
 		ctk.CTkButton(self.top, text='Simulate!', command=self.validate).pack()
@@ -108,7 +110,7 @@ class ConfigurationModal:
 		# Check the nodes
 		number_nodes = self.number_nodes_entry.get()
 		if (not number_nodes.isnumeric()) or int(number_nodes) <= 0 or int(number_nodes) > GUI_NODE_LIMIT:
-			ctk.CTkmessagebox.showerror("Error", f"Node input is invalid. Please enter a number between 1 and {GUI_NODE_LIMIT}")
+			tk.messagebox.showerror("Error", f"Node input is invalid. Please enter a number between 1 and {GUI_NODE_LIMIT}")
 			return
 
 		self.nodes = int(number_nodes)
@@ -116,7 +118,7 @@ class ConfigurationModal:
 		# Check states
 		number_states = self.number_states_entry.get()
 		if (not number_states.isnumeric()) or int(number_states) > self.nodes or int(number_states) < 1:
-			ctk.CTkmessagebox.showerror("Error", f"Number of states must between 1 and the number of nodes")
+			tk.messagebox.showerror("Error", f"Number of states must between 1 and the number of nodes")
 			return
 
 		self.states = int(number_states)
@@ -128,13 +130,13 @@ class ConfigurationModal:
 		elif max_rounds == "":
 			self.max_rounds = None
 		else:
-			ctk.CTkmessagebox.showerror("Error", f"Please enter a valid number of rounds, or leave blank for convergence")
+			tk.messagebox.showerror("Error", f"Please enter a valid number of rounds, or leave blank for convergence")
 			return
 		
 		# Check a valid protocol has been selected
 		self.protocol = self.protocol_dict.get(self.chosen_protocol.get(), None)
 		if self.protocol is None:
-			ctk.CTkmessagebox.showerror("Error", "Please select a valid protocol")
+			tk.messagebox.showerror("Error", "Please select a valid protocol")
 			return
 
 		self.top.destroy()
@@ -165,7 +167,7 @@ class SimulationGUI:
 		self.add_menu_bar()
 
 		# Top bar
-		top_bar = ctk.CTkFrame(self.window, fg_color="blue")
+		top_bar = ctk.CTkFrame(self.window)
 
 		# Right panel
 		right_panel = ctk.CTkFrame(self.window, width=50)
@@ -246,13 +248,22 @@ class SimulationGUI:
 	def add_menu_bar(self):
 		menu = tk.Menu(self.window)
 
+		# File menu
 		file_menu = tk.Menu(menu, tearoff=0)
 		file_menu.add_command(label="Create protocol..", command=lambda: self.show_config_modal())
 		file_menu.add_separator()
 		file_menu.add_command(label="Quit", command = self.quit)
 		menu.add_cascade(label = "File", menu=file_menu)
 
+		# Help menu
+		help_menu = tk.Menu(menu, tearoff=0)
+		help_menu.add_command(label="Help", command=lambda: self.show_help())
+
+		menu.add_command(label = "Help", command = lambda: self.show_help())
 		self.window.config(menu=menu)
+
+	def show_help(self):
+		print("Showing help")
 
 	def show_config_modal(self):
 		config = ConfigurationModal(self.window)
@@ -379,14 +390,6 @@ class SimulationGUI:
 
 		for i in range(0, len(self.state_colours.keys())):
 			self.state_entries[i].set_state_count(network_states.count(i))
-
-
-
-
-	def create_network(self):
-		# A test method to add and create a fixed network
-		print("Create protocol button clicked")
-		pass
 
 
 # SimulationGUI()
