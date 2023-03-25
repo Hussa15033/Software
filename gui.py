@@ -390,8 +390,3 @@ class SimulationGUI:
 
 		for i in range(0, len(self.state_colours.keys())):
 			self.state_entries[i].set_state_count(network_states.count(i))
-
-
-# SimulationGUI()
-
-# exit()
