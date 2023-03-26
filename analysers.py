@@ -19,10 +19,9 @@ class Analyser(ABC):
 	def info():
 		return "An analyser for analysing population networks"
 
-def basic_analysis(data_logger, state_colours = None):
+def basic_analysis(data, state_colours = None):
 	# A basic analyser that takes a round of data logs and produces a
-	# plot of each state in the network against the 
-	data = data_logger.data
+	# plot of each state in the network against the
 
 	# X value will show the round number
 	x = list(data.keys())
@@ -37,6 +36,7 @@ def basic_analysis(data_logger, state_colours = None):
 			y.append(count)
 
 		line, = plt.plot(x, y)
+		plt.xticks(x)
 		if (state_colours is not None):
 			line.set_color(state_colours.get(state, "#000"))
 
