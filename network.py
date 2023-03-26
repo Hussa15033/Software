@@ -2,17 +2,7 @@
 # to access components of the networks, such as the agents, opinions etc.
 
 import random
-import collections
-import agents
-import random
-import matplotlib
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from protocols import ThreeMajority
 from agents import HonestAgent
-import networkx as nx
-matplotlib.use("TkAgg")
 
 
 # A network is simply a list of nodes/agents, each with a specified state

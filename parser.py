@@ -1,7 +1,6 @@
 import argparse
 from network import PopulationNetwork
-from protocols.protocol import PopulationProtocol
-from protocols.three_majority import ThreeMajority
+from protocols import PopulationProtocol
 import networkx as nx
 from gui import SimulationGUI
 import matplotlib.pyplot as plt

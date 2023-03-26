@@ -9,16 +9,15 @@ import matplotlib.pyplot as plt
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
+import protocols
 # from parser import GUI_NODE_LIMIT
 import numpy as np
 # from protocols import ThreeMajority, ThreeMajorityConverged
 # from protocols import ThreeMajority, PopulationProtocol
-from protocols.protocol import PopulationProtocol
-from protocols.three_majority import ThreeMajority
+import agents
 # import pylab as py
 # from agents.honest_agent import HonestAgent
-# 
-from agents.honest_agent import HonestAgent
+
 import networkx as nx
 import time
 from network import PopulationNetwork

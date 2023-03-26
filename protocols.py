@@ -5,17 +5,14 @@ import collections
 
 class PopulationProtocol(ABC):
 	@staticmethod
-	@abstractmethod
-	def run(cls, state, neighbour_states):
+	def run(state, neighbour_states):
 		pass
 
 	@staticmethod
-	@abstractmethod
 	def is_converged(states):
 		pass
 
 	@staticmethod
-	@abstractmethod
 	def get_protocol_name():
 		pass
 
