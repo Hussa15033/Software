@@ -74,11 +74,9 @@ class PopulationNetwork:
 		# (seemingly) simultaneously
 		# self.round holds the round that is currently about to run
 		if self.max_rounds is not None and self.round > self.max_rounds:
-			print("Network has converged in xxx. rounds")
 			return
 
 		if self.has_converged():
-			print("Network has converged in " + str(self.round) + " rounds")
 			return
 		
 		# Should copy the agents states
