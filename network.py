@@ -91,23 +91,16 @@ class PopulationNetwork:
 			agent_state = graph_copy[agent]
 
 			# Neighbouring states, all nodes that don't have the index as this current node
-			# use different methods based on number of nodes, as node size increases
-			# random sampling is better than copying list
-			if len(self.graph) < 100:
-				# Create copy of list
-				neighbour_states = [graph_copy[a] for a in range(len(graph_copy)) if a != agent]
+			# We remove this current node from the graph temporarily, then sample from the remaining list
+			# Once it has been sampled, the node is then inserted back into the graph
+			agent_copy = graph_copy.pop(agent)
+			neighbour_states = graph_copy
 
-				# Run protocol to find new state
-				new_state = self.protocol.run(agent_state, neighbour_states)
-			else:
-				agent_copy = graph_copy.pop(agent)
-				neighbour_states = graph_copy
+			# Run protocol to find new state
+			new_state = self.protocol.run(agent_state, neighbour_states)
 
-				# Run protocol to find new state
-				new_state = self.protocol.run(agent_state, neighbour_states)
-
-				# Insert back into the list
-				graph_copy.insert(agent, agent_copy)
+			# Insert back into the list
+			graph_copy.insert(agent, agent_copy)
 
 			# Update this node using agent update method
 			self.graph[agent].update_state(new_state)
