@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 from network import PopulationNetwork
 
+
 class Analyser(ABC):
 	def __init__(self, nodes, states, state_config, protocol, rounds):
 		self.nodes = nodes
@@ -15,9 +16,9 @@ class Analyser(ABC):
 		pass
 
 	# Override this method to display info about the analyser
-	@staticmethod
-	def info():
+	def info(self):
 		return "An analyser for analysing population networks"
+
 
 def basic_analysis(data, state_colours = None):
 	# A basic analyser that takes a round of data logs and produces a

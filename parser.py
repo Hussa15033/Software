@@ -1,7 +1,6 @@
 import argparse
 from network import PopulationNetwork
 from protocols import PopulationProtocol
-import networkx as nx
 from gui import SimulationGUI
 import matplotlib.pyplot as plt
 from analysers import BasicAnalyser, BiasAnalyser
@@ -28,13 +27,14 @@ PROTOCOLS = {protocol_class.get_protocol_name(): protocol_class for protocol_cla
 
 # Different types of analysis that can be performed name -> callback
 ANALYSERS = {
-	"basic" : BasicAnalyser,
-	"bias" : BiasAnalyser
+	"basic": BasicAnalyser,
+	"bias": BiasAnalyser
 }
+
 
 def positive_number(val):
 	if int(val) <= 0:
-		raise argparse.ArgumentTypeError("Exepcted a positive integer greater than 0")
+		raise argparse.ArgumentTypeError("Expected a positive integer greater than 0")
 
 	return int(val)
 
@@ -50,47 +50,55 @@ def network_config(val):
 
 	return [int(a) for a in split_list]
 
+
 parser = argparse.ArgumentParser(prog = 'Population Protocol Visualiser',
 								description = 'Analyse and visualise population protocol networks',
 								formatter_class=argparse.RawTextHelpFormatter)
 
 parser.add_argument('-nogui', '--nogui', action = 'store_true', dest = 'nogui', help='Run the analyser without a GUI', default=False)
-parser.add_argument('-r', '-rounds', dest = 'rounds', help = 'The number of rounds to run the protocol for, only valid when used with -nogui', type = positive_number, default=DEFAULT_ROUNDS_COUNT)
-parser.add_argument('-n', '-nodes', dest = 'nodes', help = 'The number of nodes in the network', type=positive_number, default=DEFAULT_NODE_COUNT)
-parser.add_argument('-s', '-states', dest = 'states', help = 'The number of initial states, or a list of comma separated numbers indicating how many nodes in each state (must add up to n, the number of nodes)', type=network_config, default=[DEFAULT_STATE_COUNT])
-parser.add_argument('-p', '-protocol', dest='protocol', help='The protocol to run this network with', choices=PROTOCOLS.keys(), required=True)
+parser.add_argument('-r', '-rounds', dest='rounds', help = 'The number of rounds to run the protocol for, only valid when used with -nogui', type = positive_number, default=DEFAULT_ROUNDS_COUNT)
+parser.add_argument('-n', '-nodes', dest='nodes', help = 'The number of nodes in the network', type=positive_number, default=None)
+parser.add_argument('-s', '-states', dest='states', help = 'The number of initial states, or a list of comma separated numbers indicating how many nodes in each state (must add up to n, the number of nodes)', type=network_config, default=None)
+parser.add_argument('-p', '-protocol', dest='protocol', help='The protocol to run this network with', choices=PROTOCOLS.keys(), default=None)
 parser.add_argument('-o', '-output', dest='output', help="\n".join(f"{name:<6}" + " : " + analyser.info() for name, analyser in ANALYSERS.items()), choices = ANALYSERS.keys(), default = "basic")
-# parser.add_argument('-o')
-# 
 
 # Parser verifies arguments are correct for ALL analysers
 # Each analyser then uses whatever arguments it requires from the parser
 
 args = parser.parse_args()
 
-if (len(args.states) > 1 and sum(args.states) != args.nodes):
-	# If a state config is given, check the number of nodes in the configuration matches the nodes specified in the network
-	raise argparse.ArgumentTypeError(f"The number of nodes specified ({args.nodes}) does not match the nodes in the state configuration ({sum(args.states)})")
+
+# Network created is invalid to begin with.
+network = None
+
+# Validate all commands given by the user
+if args.nodes is not None and args.states is not None and args.protocol is not None:
+	if args.states is not None and len(args.states) > 1 and sum(args.states) != args.nodes:
+		# If a state config is given, check the number of nodes in the configuration matches the nodes specified in the network
+		raise argparse.ArgumentTypeError(f"The number of nodes specified ({args.nodes}) does not match the nodes in the state configuration ({sum(args.states)})")
+
+	# Create the network specified by the number of nodes and the state configuration
+	protocol = PROTOCOLS.get(args.protocol)
+
+	if len(args.states) == 1:
+		# Only 1 state provided, this means this is the given state
+		if (args.states[0]) > args.nodes:
+			raise argparse.ArgumentTypeError(f"The number of states must be less than or equal to the number of nodes ({args.nodes})")
+		network_states = args.states[0]
+		state_config = None
+	else:
+		network_states = len(args.states)
+		state_config = args.states
+
+	network = PopulationNetwork(args.nodes, network_states, protocol, state_config)
+
 
 # Check if GUI is used, if nogui is specified then this also allows the rounds
-
-# Create the network specified by the number of nodes and the state configuration
-protocol = PROTOCOLS.get(args.protocol)
-
-if len(args.states) == 1:
-	# Only 1 state provided, this means this is the given state
-	if (args.states[0]) > args.nodes:
-		raise argparse.ArgumentTypeError(f"The number of states must be less than or equal to the number of nodes ({args.nodes})")
-	network_states = args.states[0]
-	state_config = None
-else:
-	network_states = len(args.states)
-	state_config = args.states
-
-network = PopulationNetwork(args.nodes, network_states, protocol, state_config)
-
-
+# If a GUI is not selected, then the network created above must be valid
 if args.nogui:
+	if network is None:
+		parser.error("Incorrect arguments passed. Use the help command for more information")
+	# Using the CLI
 	# Get the analyser that was selected
 	analyser_type = ANALYSERS.get(args.output, None)
 	if analyser_type is None:
@@ -101,13 +109,10 @@ if args.nogui:
 	plt.show()
 
 else:
-	if (args.rounds > 1):
+	# GUI is being used
+	if args.rounds > 1:
 		parser.error("Multiple rounds may only be run without the GUI (use -nogui)")
 
-	if args.nodes > GUI_NODE_LIMIT:
+	if args.nodes is not None and args.nodes > GUI_NODE_LIMIT:
 		parser.error(f"Only networks up to and including {GUI_NODE_LIMIT} nodes may be created with the GUI (use -nogui)")
 	SimulationGUI(network)
-
-
-print("Done")
-# if (args.)
