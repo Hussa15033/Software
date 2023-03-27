@@ -88,7 +88,7 @@ class ConfigurationModal:
         max_rounds = self.number_rounds_entry.get()
         if max_rounds.isnumeric() and int(max_rounds) >= 1:
             self.max_rounds = int(max_rounds)
-        else:
+        elif max_rounds != "":
             tk.messagebox.showerror("Error", f"Please enter a valid number of rounds, or leave blank for convergence")
             return
 
@@ -132,13 +132,13 @@ class SimulationGUI:
 
         # Right panel
         right_panel = ctk.CTkFrame(self.window, width=50)
-        ctk.CTkLabel(right_panel, text='States', pady=10).pack(fill="x")
+        states_label = ctk.CTkLabel(right_panel, text='States', pady=10)
 
         # State list
         self.state_list = ctk.CTkScrollableFrame(right_panel)
 
         # Graph and canvas panel
-        self.graph_window = ctk.CTkFrame(self.window, fg_color="#ff0000")
+        self.graph_window = ctk.CTkFrame(self.window, fg_color="#ffffff")
 
         # Round info label
         self.status_label = ctk.CTkLabel(top_bar, text="Start network", padx=5)
@@ -165,8 +165,8 @@ class SimulationGUI:
         view_data_btn.pack()
 
         # Create the state list frame and pack all necessary elements
+        states_label.pack(fill="x")
         self.state_list.pack(fill="y", expand=True)
-
         right_panel.pack(side=ctk.RIGHT, fill="y", ipadx=20)
 
         # Graph panel
@@ -174,6 +174,10 @@ class SimulationGUI:
         self.canvas = FigureCanvasTkAgg(self.graph_figure, self.graph_window)
         self.canvas.get_tk_widget().pack(fill="both", expand=True)
         self.graph_window.pack(expand=True, side=ctk.BOTTOM, fill="both")
+
+        # Add starting text to graph panel
+        self.starting_network_text = ctk.CTkLabel(self.graph_window, text="Create a network to visualise")
+        self.starting_network_text.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
         self.state_entries = None
         self.set_network(network)
@@ -189,6 +193,8 @@ class SimulationGUI:
         self.window.quit()
 
     def show_basic_analysis(self):
+        if self.network is None:
+            return
         self.wait_round()
         self.close_extra_figures()
         basic_analysis(self.network.data, self.state_colours)
@@ -212,7 +218,7 @@ class SimulationGUI:
     def show_config_modal(self):
         config = ConfigurationModal(self.window)
         self.window.wait_window(config.top)
-        if config.nodes is not None and config.states is not None and config.protocol is not None and config.max_rounds is not None:
+        if config.nodes is not None and config.states is not None and config.protocol is not None:
             new_network = PopulationNetwork(config.nodes, config.states, config.protocol, max_rounds=config.max_rounds)
             self.set_network(new_network)
 
@@ -230,6 +236,8 @@ class SimulationGUI:
         self.canvas.draw()
 
     def start(self):
+        if self.network is None:
+            return
         # Close any open figures
         self.close_extra_figures()
         self.paused = False
@@ -255,6 +263,8 @@ class SimulationGUI:
             plt.close()
 
     def step(self):
+        if self.network is None:
+            return
         self.close_extra_figures()
         self.wait_round()
 
@@ -288,11 +298,23 @@ class SimulationGUI:
             time.sleep(1)
 
     def pause(self):
+        if self.network is None:
+            return
         self.paused = True
 
     def set_network(self, network):
         # This method clears any current network, and resets the GUI to load a new network
         # It also generates random colours for the states in the network
+        if network is None:
+            # No network selected (e.g when GUI starts)
+            self.network = None
+            self.status_label.configure(text="")
+            self.canvas.draw()
+            return
+
+        # Remove tooltip at the start
+        self.starting_network_text.place_forget()
+
         self.status_label.configure(text="Start network")
         self.network = network
 
