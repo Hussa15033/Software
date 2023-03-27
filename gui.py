@@ -166,7 +166,7 @@ class SimulationGUI:
 
         # Create the state list frame and pack all necessary elements
         states_label.pack(fill="x")
-        self.state_list.pack(fill="y", expand=True)
+        self.state_list.pack(fill="y", expand=True, pady=(0, 10))
         right_panel.pack(side=ctk.RIGHT, fill="y", ipadx=20)
 
         # Graph panel
