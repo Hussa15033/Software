@@ -9,7 +9,7 @@ import threading
 from analysers import basic_analysis
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from network import PopulationNetwork
-from protocols import PopulationProtocol
+from protocols import PopulationProtocol, ThreeMajority
 
 matplotlib.use("TkAgg")
 
@@ -17,6 +17,9 @@ ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("dark-blue")
 
 GUI_NODE_LIMIT = 50
+
+# A list of all protocols available for the GUI
+GUI_PROTOCOLS = [ThreeMajority()]
 
 
 class ConfigurationModal:
@@ -46,15 +49,13 @@ class ConfigurationModal:
         ctk.CTkLabel(self.top, text='Protocol:').pack()
 
         # Protocol selection menu
-        self.protocol_dict = {protocol_class.get_protocol_name(): protocol_class for protocol_class in
-                              PopulationProtocol.__subclasses__()}
-        protocol_list = list(self.protocol_dict.keys())
+        self.protocol_dict = {protocol.get_protocol_name(): protocol for protocol in GUI_PROTOCOLS}
 
         self.chosen_protocol = ctk.StringVar(self.top)
         self.chosen_protocol.set("Select protocol")
 
         protocol_option = ctk.CTkOptionMenu(master=self.top,
-                                            values=protocol_list,
+                                            values=list(self.protocol_dict.keys()),
                                             variable=self.chosen_protocol,
                                             fg_color="#fff",
                                             text_color="#000")

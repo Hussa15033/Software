@@ -1,6 +1,8 @@
+import math
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 from network import PopulationNetwork
+from protocols import NMajorityProtocol
 
 
 class Analyser(ABC):
@@ -16,11 +18,12 @@ class Analyser(ABC):
 		pass
 
 	# Override this method to display info about the analyser
-	def info(self):
+	@staticmethod
+	def info():
 		return "An analyser for analysing population networks"
 
 
-def basic_analysis(data, state_colours = None):
+def basic_analysis(data, state_colours=None):
 	# A basic analyser that takes a round of data logs and produces a
 	# plot of each state in the network against the
 
@@ -38,7 +41,7 @@ def basic_analysis(data, state_colours = None):
 
 		line, = plt.plot(x, y)
 		plt.xticks(x)
-		if (state_colours is not None):
+		if state_colours is not None:
 			line.set_color(state_colours.get(state, "#000"))
 
 		if (len(initial_states) <= 5):
@@ -56,6 +59,7 @@ def basic_analysis(data, state_colours = None):
 	plt.title('States in network')
 	f.show()
 
+
 # A basic analyser that just runs 1 round, and outputs the
 # states over time
 class BasicAnalyser(Analyser):
@@ -67,12 +71,14 @@ class BasicAnalyser(Analyser):
 			network.run_round()
 
 		print(f"Finished, network converged on round {network.round - 1}")
-		basic_analysis(network.logger)
+		basic_analysis(network.data)
 
+	@staticmethod
 	def info():
 		return "A basic analyser showing the number of nodes in each state over each round"
 
-# An analyser that slowly increases the bias and plots a graph of the probablities over time
+
+# An analyser that slowly increases the bias and plots a graph of the frequencies over time
 class BiasAnalyser(Analyser):
 	def analyse(self):
 		if self.rounds < 100:
@@ -82,8 +88,8 @@ class BiasAnalyser(Analyser):
 			print("Error: A state configuration/number of states is unnecessary for the bias analyser")
 			return
 
-		if self.nodes < 3:
-			print("Error: A minimum of 3 nodes is required for the bias anylyser")
+		if self.nodes < 4:
+			print("Error: A minimum of 4 nodes is required for the bias anylyser")
 			return
 
 		# We have 2 states, and start with a bias of 0 or 1 (depending on if the number of nodes is 1 or 0)
@@ -133,5 +139,64 @@ class BiasAnalyser(Analyser):
 		plt.title(f"Probability change with bias")
 		f.show()
 
+	@staticmethod
 	def info():
 		return "An analyser that shows the probability of convergence in a 2 state network as the bias increases"
+
+
+class NMajorityAnalyser(Analyser):
+	def analyse(self):
+		if self.rounds < 100:
+			print("Warning: A high number of rounds is recommended for the N-Majority analyser")
+
+		# if self.state_config is not None or self.states is not None:
+		# 	print("Error: A state configuration/number of states is unnecessary for the N-Majority analyser")
+		# 	return
+
+		if self.nodes < 4:
+			print("Error: A minimum of 4 nodes is required for the N-Majority analyser")
+			return
+
+		# We analyse the average number of rounds til convergence for each majority protocol
+		x_majority_axis = []
+		y_avg_rounds = []
+		for n_majority in range(3, self.nodes, 2):
+			print(f"Running {n_majority} protocol")
+			# Increase n majority of protocol by 2 each time
+			protocol = NMajorityProtocol(n_majority)
+
+			# The state of each node should be different
+			state_config = [1] * self.nodes
+			print("LENGTH IS " + str(len(state_config)))
+
+			total_convergence_rounds = 0
+			for i in range(self.rounds):
+				# Create and run the network
+				network = PopulationNetwork(self.nodes, self.nodes, protocol, state_config)
+
+				while not network.has_converged():
+					network.run_round()
+
+				number_of_rounds = len(network.data.keys())
+				total_convergence_rounds += number_of_rounds
+
+			# Calculate average number of rounds until convergence for this protocol
+			avg_convergence_rounds = math.floor(total_convergence_rounds / self.rounds)
+
+			print(f"AVG IS {avg_convergence_rounds}")
+
+			x_majority_axis.append(n_majority)
+			y_avg_rounds.append(avg_convergence_rounds)
+
+		# Plot data and show it
+		f = plt.figure()
+		plt.plot(x_majority_axis, y_avg_rounds)
+
+		plt.xlabel("N - Majority")
+		plt.ylabel("Average number of rounds")
+		plt.title(f"Average number of rounds until convergence for N-Majority protocols")
+		f.show()
+
+	@staticmethod
+	def info():
+		return "An analyser that increases the number of nodes sampled, with 3, 5, 7, etc majority, plotting the average number of rounds to convergence."

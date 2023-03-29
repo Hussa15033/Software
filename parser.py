@@ -1,9 +1,9 @@
 import argparse
 from network import PopulationNetwork
-from protocols import PopulationProtocol
+from protocols import PopulationProtocol, ThreeMajority, NMajorityProtocol
 from gui import SimulationGUI
 import matplotlib.pyplot as plt
-from analysers import BasicAnalyser, BiasAnalyser
+from analysers import BasicAnalyser, BiasAnalyser, NMajorityAnalyser
 
 # The parser for commandline arguments for the population protocols
 # Options:
@@ -23,12 +23,14 @@ DEFAULT_ROUNDS_COUNT = 1
 GUI_NODE_LIMIT = 50
 
 # Dictionary of protocol name -> protocol
-PROTOCOLS = {protocol_class.get_protocol_name(): protocol_class for protocol_class in PopulationProtocol.__subclasses__()}
-
+# todo: fix this!
+CLI_PROTOCOLS = [ThreeMajority(), NMajorityProtocol(97)]
+PROTOCOLS = {protocol.get_protocol_name(): protocol for protocol in CLI_PROTOCOLS}
 # Different types of analysis that can be performed name -> callback
 ANALYSERS = {
 	"basic": BasicAnalyser,
-	"bias": BiasAnalyser
+	"bias": BiasAnalyser,
+	"n-majority": NMajorityAnalyser
 }
 
 
@@ -65,6 +67,9 @@ parser.add_argument('-o', '-output', dest='output', help="\n".join(f"{name:<6}" 
 # Parser verifies arguments are correct for ALL analysers
 # Each analyser then uses whatever arguments it requires from the parser
 
+# Essentially, if the nogui command is used, we ignore ALL other stuff, the CLI is only useful for analysers
+# so only allow analyses with these. Verify all arguments BEFORE the analyses, but no arguments should be
+# required by the parser except the analyser, then the analyser will choose what arguments it wishes to accept
 args = parser.parse_args()
 
 
@@ -72,10 +77,11 @@ args = parser.parse_args()
 network = None
 
 # Validate all commands given by the user
-if args.nodes is not None and args.states is not None and args.protocol is not None:
-	if args.states is not None and len(args.states) > 1 and sum(args.states) != args.nodes:
+if args.nodes is not None and args.protocol is not None:
+	input("TEST")
+	# if args.states is not None and len(args.states) > 1 and sum(args.states) != args.nodes:
 		# If a state config is given, check the number of nodes in the configuration matches the nodes specified in the network
-		raise argparse.ArgumentTypeError(f"The number of nodes specified ({args.nodes}) does not match the nodes in the state configuration ({sum(args.states)})")
+		# raise argparse.ArgumentTypeError(f"The number of nodes specified ({args.nodes}) does not match the nodes in the state configuration ({sum(args.states)})")
 
 	# Create the network specified by the number of nodes and the state configuration
 	protocol = PROTOCOLS.get(args.protocol)
