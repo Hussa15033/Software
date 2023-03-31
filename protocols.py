@@ -24,7 +24,7 @@ class ThreeMajority(PopulationProtocol):
 	def run(self, state, neighbour_states):
 		if len(neighbour_states) < 3:
 			raise ValueError("Three majority protocol requires atleast 3 neighbours to sample!")
-		
+
 		# Get 3 random neighbours
 		sampled_neighbours = random.sample(neighbour_states, 3)
 
@@ -52,6 +52,8 @@ class NMajorityProtocol(PopulationProtocol):
 		self.n = n
 
 	def run(self, state, neighbour_states):
+		if len(neighbour_states) < self.n:
+			raise ValueError(f"N Majority protocol requires {self.n} neighbours ({len(neighbour_states)} neighbours found)")
 		# Get n random neighbours
 		sampled_neighbours = random.sample(neighbour_states, self.n)
 
