@@ -3,6 +3,7 @@ import random
 import collections
 import math
 
+
 class PopulationProtocol(ABC):
 	def run(self, state, neighbour_states):
 		pass
@@ -54,6 +55,7 @@ class NMajorityProtocol(PopulationProtocol):
 	def run(self, state, neighbour_states):
 		if len(neighbour_states) < self.n:
 			raise ValueError(f"N Majority protocol requires {self.n} neighbours ({len(neighbour_states)} neighbours found)")
+
 		# Get n random neighbours
 		sampled_neighbours = random.sample(neighbour_states, self.n)
 
