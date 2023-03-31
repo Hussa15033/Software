@@ -121,7 +121,7 @@ class StateEntryWidget(ctk.CTkFrame):
 
 
 class SimulationGUI:
-    def __init__(self, network):
+    def __init__(self):
         self.window = ctk.CTk()
         self.window.geometry("800x500")
         self.window.title("Population Protocol")
@@ -181,7 +181,8 @@ class SimulationGUI:
         self.starting_network_text.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
         self.state_entries = None
-        self.set_network(network)
+        self.max_rounds = None
+        self.set_network(None)
 
         self.paused = True
         self.running_thread = None
@@ -220,7 +221,8 @@ class SimulationGUI:
         config = ConfigurationModal(self.window)
         self.window.wait_window(config.top)
         if config.nodes is not None and config.states is not None and config.protocol is not None:
-            new_network = PopulationNetwork(config.nodes, config.states, config.protocol, max_rounds=config.max_rounds)
+            self.max_rounds = config.max_rounds
+            new_network = PopulationNetwork.network_from_configuration(config.nodes, config.states, config.protocol)
             self.set_network(new_network)
 
     def show_network(self):
@@ -266,11 +268,23 @@ class SimulationGUI:
     def step(self):
         if self.network is None:
             return
+
+        if self.network_max_rounds_reached() or self.network.has_converged():
+            return
+
         self.close_extra_figures()
         self.wait_round()
 
         self.network.run_round()
         self.window.event_generate("<<update_network>>", when="tail")
+
+    def network_max_rounds_reached(self):
+        # Check if the simulation has reached
+        # the configured maximum number of rounds
+        if self.max_rounds is None:
+            return False
+
+        return self.network.round > self.max_rounds
 
     def show_network_evt(self, evt):
         # Update all necessary GUI elements, including network
@@ -278,8 +292,8 @@ class SimulationGUI:
         # Update the round/status label
         current_round = self.network.round - 1
 
-        if self.network.max_rounds is not None and current_round >= self.network.max_rounds:
-            self.status_label.configure(text=f"Maximum round of {self.network.max_rounds} reached")
+        if self.max_rounds is not None and current_round >= self.max_rounds:
+            self.status_label.configure(text=f"Maximum round of {self.max_rounds} reached")
         elif self.network.has_converged():
             self.status_label.configure(text=f"Network converged on round {str(current_round)}")
         else:
@@ -293,7 +307,7 @@ class SimulationGUI:
 
     def propel(self):
         # Run the simulation until it has finished or is paused
-        while not self.network.has_finished() and not self.paused:
+        while not (self.network.has_converged() or self.network_max_rounds_reached()) and not self.paused:
             self.network.run_round()
             self.window.event_generate("<<update_network>>", when="tail")
             time.sleep(1)
