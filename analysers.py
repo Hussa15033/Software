@@ -1,6 +1,7 @@
 import math
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
+from agents import HonestAgent, FaultyAgent
 from network import PopulationNetwork
 from protocols import NMajorityProtocol
 
@@ -65,8 +66,14 @@ def basic_analysis(data, state_colours=None):
 class BasicAnalyser(Analyser):
 	def analyse(self):
 		if self.rounds > 1:
-			print("The basic analyser can only be run using 1 round")
-		network = PopulationNetwork(self.nodes, self.states, self.protocol, self.state_config)
+			print("Error: The basic analyser can only be run using 1 round")
+			return
+
+		if self.states is None:
+			print("Error: Please provide the number of states for the network")
+			return
+
+		network = PopulationNetwork.network_from_configuration(self.nodes, self.states, self.protocol, self.state_config)
 		while not network.has_converged():
 			network.run_round()
 
@@ -84,15 +91,11 @@ class BiasAnalyser(Analyser):
 		if self.rounds < 100:
 			print("Warning: A high number of rounds is recommended for the bias analyser")
 
-		if self.state_config is not None or self.states != 2:
-			print("Error: A state configuration/number of states is unnecessary for the bias analyser")
+		if self.protocol is None:
+			print("Error: Please select a protocol to run")
 			return
 
-		if self.nodes < 4:
-			print("Error: A minimum of 4 nodes is required for the bias anylyser")
-			return
-
-		# We have 2 states, and start with a bias of 0 or 1 (depending on if the number of nodes is 1 or 0)
+		# We have 2 states, and start with a bias of 0 or 1 (depending on if the number of nodes is odd or even)
 		state_0_initial_count = int(self.nodes / 2)
 		bias = 0
 
@@ -101,7 +104,7 @@ class BiasAnalyser(Analyser):
 		x_bias = []
 		y_prob = []
 		while bias + state_0_initial_count <= self.nodes:
-			print(f"Running with bias {bias}")
+			print(f"Running with bias {bias}/{self.nodes - state_0_initial_count}")
 			# Run the network and check the final counts
 			state_0_count = bias + state_0_initial_count
 			state_1_count = self.nodes - state_0_count
@@ -109,14 +112,16 @@ class BiasAnalyser(Analyser):
 
 			# Run this network with the specified number of rounds
 			state_0_win_count = 0
+
 			for i in range(self.rounds):
-				network = PopulationNetwork(self.nodes, self.states, self.protocol, states_config)
+				network = PopulationNetwork.network_from_configuration(self.nodes, 2, self.protocol, states_config)
+
 				while not network.has_converged():
 					network.run_round()
 
 				# Now check the final configuration, as network has converged
-				last_round = max(network.logger.data)
-				last_round_states = network.logger.data.get(last_round)
+				last_round = max(network.data)
+				last_round_states = network.data.get(last_round)
 
 				if last_round_states[0] == 0:
 					state_0_win_count += 1
@@ -135,8 +140,8 @@ class BiasAnalyser(Analyser):
 		plt.plot(x_bias, y_prob)
 
 		plt.xlabel("Bias")
-		plt.ylabel("Probability of convergence")
-		plt.title(f"Probability change with bias")
+		plt.ylabel(f"Convergence frequency with {self.rounds} rounds")
+		plt.title(f"Frequency of convergence as bias increases with {self.nodes} nodes and 2 states, using {self.protocol.get_protocol_name()} protocol")
 		f.show()
 
 	@staticmethod
@@ -181,7 +186,7 @@ class NMajorityAnalyser(Analyser):
 				total_convergence_rounds += number_of_rounds
 
 			# Calculate average number of rounds until convergence for this protocol
-			avg_convergence_rounds = math.floor(total_convergence_rounds / self.rounds)
+			avg_convergence_rounds = total_convergence_rounds / self.rounds
 
 			print(f"AVG IS {avg_convergence_rounds}")
 
@@ -200,3 +205,68 @@ class NMajorityAnalyser(Analyser):
 	@staticmethod
 	def info():
 		return "An analyser that increases the number of nodes sampled, with 3, 5, 7, etc majority, plotting the average number of rounds to convergence."
+
+
+class AdversarialAnalyser(Analyser):
+	def analyse(self):
+		if self.rounds < 100:
+			print("Warning: A high number of rounds is recommended for the Adversial analyser")
+
+		if self.protocol is None:
+			print("Error: Please select a protocol to perform this analysis")
+			return
+
+		if self.nodes is None:
+			print("Error: Please input the number of nodes to perform this analysis on")
+			return
+
+		# We analyse the average number of rounds til convergence for every adversary, up until
+		# all nodes are adversaries
+		x_adversary_count = []
+		y_avg_rounds = []
+
+		for adversary_count in range(2, self.nodes + 1):
+			print(f"Running adversarial analysis with {adversary_count}/{self.nodes} adversaries")
+
+			# We need a manual list of agents, since we are including faulty agents
+			agents = []
+
+			# Honest agents will be in states 0 and 1
+			honest_node_count = self.nodes - adversary_count
+			state_0_count = math.floor(honest_node_count / 2)
+			state_1_count = honest_node_count - state_0_count
+
+			agents.extend([HonestAgent(0)] * state_0_count)
+			agents.extend([HonestAgent(1)] * state_1_count)
+
+			# Add faulty agents
+			agents.extend([FaultyAgent(2)] * adversary_count)
+
+			total_convergence_rounds = 0
+			for i in range(self.rounds):
+				network = PopulationNetwork(agents.copy(), self.protocol)
+
+				while not network.has_converged():
+					network.run_round()
+
+				number_rounds = len(network.data.keys())
+				total_convergence_rounds += number_rounds
+
+			# Calculate average number of rounds
+			avg_convergence_rounds = total_convergence_rounds / self.rounds
+
+			x_adversary_count.append(adversary_count)
+			y_avg_rounds.append(avg_convergence_rounds)
+
+		# Plot data and show it
+		f = plt.figure()
+		plt.plot(x_adversary_count, y_avg_rounds)
+
+		plt.xlabel("Number of faulty nodes")
+		plt.ylabel("Average number of rounds")
+		plt.title(f"Average number of rounds until convergence with faulty nodes")
+		# f.show()
+
+	@staticmethod
+	def info():
+		return "An analyser that increases the number of faulty nodes, plotting the average number of rounds to convergence. "
