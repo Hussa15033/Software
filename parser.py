@@ -60,11 +60,11 @@ parser = argparse.ArgumentParser(prog = 'Population Protocol Visualiser',
 								formatter_class=argparse.RawTextHelpFormatter)
 
 parser.add_argument('-nogui', '--nogui', action = 'store_true', dest = 'nogui', help='Run the analyser without a GUI', default=False)
-parser.add_argument('-r', '-rounds', dest='rounds', help = 'The number of rounds to run the protocol for, only valid when used with -nogui', type = positive_number, default=DEFAULT_ROUNDS_COUNT)
+parser.add_argument('-r', '-rounds', dest='rounds', help = 'The number of rounds to run the protocol for, only valid when used with -nogui', type=positive_number, default=DEFAULT_ROUNDS_COUNT)
 parser.add_argument('-n', '-nodes', dest='nodes', help = 'The number of nodes in the network', type=positive_number, default=None)
 parser.add_argument('-s', '-states', dest='states', help = 'The number of initial states, or a list of comma separated numbers indicating how many nodes in each state (must add up to n, the number of nodes)', type=network_config, default=None)
 parser.add_argument('-p', '-protocol', dest='protocol', help='The protocol to run this network with', choices=PROTOCOLS.keys(), default=None)
-parser.add_argument('-a', '-analysis', dest='analysis', help="\n".join(f"{name:<6}" + " : " + analyser.info() for name, analyser in ANALYSERS.items()), choices = ANALYSERS.keys(), default = "basic")
+parser.add_argument('-a', '-analysis', dest='analysis', help="\n".join(f"{name:<6}" + " : " + analyser.info() for name, analyser in ANALYSERS.items()), choices = ANALYSERS.keys(), default=None)
 
 # Parser verifies arguments are correct for ALL analysers
 # Each analyser then uses whatever arguments it requires from the parser

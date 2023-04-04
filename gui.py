@@ -32,6 +32,7 @@ class ConfigurationModal:
         self.protocol = None
 
         self.top = ctk.CTkToplevel(parent)
+        self.top.title("")
         self.top.grab_set()
         self.top.focus_set()
         ctk.CTkLabel(self.top, text='Number of nodes:').pack()
@@ -106,10 +107,13 @@ class StateEntryWidget(ctk.CTkFrame):
     def __init__(self, parent, state_colour, state_id, state_nodes):
         ctk.CTkFrame.__init__(self, parent)
 
+        self.state_id = state_id
+
         # Create node colour dot, and add labels for texts
         canvas = ctk.CTkCanvas(self, height=10, width=20)
         canvas.create_oval(7, 13, 17, 23, fill=state_colour)
         canvas.pack(side=ctk.LEFT, fill="both")
+
         self.state_id_label = ctk.CTkLabel(self, text="State " + str(state_id))
         self.state_id_label.pack(side=ctk.LEFT, fill="x", expand=True)
 
@@ -363,5 +367,6 @@ class SimulationGUI:
         # Adjust the number of nodes in each entry
         network_states = self.network.get_states()
 
-        for i in range(0, len(self.state_colours.keys())):
-            self.state_entries[i].set_state_count(network_states.count(i))
+        for state_entry in self.state_entries:
+            # Loop through all state entries and update their counts
+            state_entry.set_state_count(network_states.count(state_entry.state_id))
