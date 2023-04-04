@@ -9,7 +9,7 @@ import threading
 from analysers import basic_analysis
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from network import PopulationNetwork
-from protocols import PopulationProtocol, ThreeMajority
+from protocols import ThreeMajority, VoterModel, TwoChoiceProtocol
 
 matplotlib.use("TkAgg")
 
@@ -19,7 +19,7 @@ ctk.set_default_color_theme("dark-blue")
 GUI_NODE_LIMIT = 50
 
 # A list of all protocols available for the GUI
-GUI_PROTOCOLS = [ThreeMajority()]
+GUI_PROTOCOLS = [VoterModel(), TwoChoiceProtocol(), ThreeMajority()]
 
 
 class ConfigurationModal:
@@ -124,7 +124,7 @@ class SimulationGUI:
     def __init__(self):
         self.window = ctk.CTk()
         self.window.geometry("800x500")
-        self.window.title("Population Protocol")
+        self.window.title("Population Protocols")
 
         self.add_menu_bar()
 
@@ -142,7 +142,7 @@ class SimulationGUI:
         self.graph_window = ctk.CTkFrame(self.window, fg_color="#ffffff")
 
         # Round info label
-        self.status_label = ctk.CTkLabel(top_bar, text="Start network", padx=5)
+        self.status_label = ctk.CTkLabel(top_bar, text="", padx=5)
 
         # List of tuples for all states of (color, id, nodes supporting)
         self.state_node_list = []
@@ -330,7 +330,7 @@ class SimulationGUI:
         # Remove tooltip at the start
         self.starting_network_text.place_forget()
 
-        self.status_label.configure(text="Start network")
+        self.status_label.configure(text="Press play to begin protocol")
         self.network = network
 
         # Clear state entry list GUI
