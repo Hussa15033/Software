@@ -78,7 +78,7 @@ class BasicAnalyser(Analyser):
 		while not network.has_converged():
 			network.run_round()
 
-		print(f"Finished, network converged on round {network.round - 1}")
+		# print(f"Finished, network converged on round {network.round - 1}")
 		basic_analysis(network.data)
 
 	@staticmethod
