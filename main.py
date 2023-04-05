@@ -23,7 +23,7 @@ GUI_NODE_LIMIT = 50
 MAX_NODE_LIMIT = 10000
 
 # Dictionary of protocol name -> protocol
-CLI_PROTOCOLS = [VoterModel(), TwoChoiceProtocol(), ThreeMajority(), NMajorityProtocol(97)]
+CLI_PROTOCOLS = [VoterModel(), TwoChoiceProtocol(), ThreeMajority()]
 PROTOCOLS = {protocol.get_protocol_name(): protocol for protocol in CLI_PROTOCOLS}
 
 # Different types of analysis that can be performed name -> callback
