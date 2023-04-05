@@ -173,7 +173,6 @@ class NMajorityAnalyser(Analyser):
 
 			# The state of each node should be different
 			state_config = [1] * self.nodes
-			print("LENGTH IS " + str(len(state_config)))
 
 			total_convergence_rounds = 0
 			for i in range(self.rounds):
@@ -189,8 +188,6 @@ class NMajorityAnalyser(Analyser):
 			# Calculate average number of rounds until convergence for this protocol
 			avg_convergence_rounds = total_convergence_rounds / self.rounds
 
-			print(f"AVG IS {avg_convergence_rounds}")
-
 			x_majority_axis.append(n_majority)
 			y_avg_rounds.append(avg_convergence_rounds)
 
@@ -200,7 +197,7 @@ class NMajorityAnalyser(Analyser):
 
 		plt.xlabel("N - Majority")
 		plt.ylabel("Average number of rounds")
-		plt.title(f"Average number of rounds until convergence for N-Majority protocols")
+		plt.title(f"Average number of rounds until convergence for N-Majority protocols with {self.nodes} nodes")
 		f.show()
 
 	@staticmethod
