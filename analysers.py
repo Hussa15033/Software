@@ -45,7 +45,8 @@ def basic_analysis(data, state_colours=None):
 		if state_colours is not None:
 			line.set_color(state_colours.get(state, "#000"))
 
-		if (len(initial_states) <= 5):
+		if len(initial_states) <= 5:
+			# If there is less than 5 states, show a legend
 			line.set_label(f'State {state}')
 			plt.legend()
 
@@ -177,7 +178,7 @@ class NMajorityAnalyser(Analyser):
 			total_convergence_rounds = 0
 			for i in range(self.rounds):
 				# Create and run the network
-				network = PopulationNetwork(self.nodes, self.nodes, protocol, state_config)
+				network = PopulationNetwork.network_from_configuration(self.nodes, self.nodes, protocol, state_config)
 
 				while not network.has_converged():
 					network.run_round()
@@ -259,13 +260,11 @@ class AdversarialAnalyser(Analyser):
 			y_avg_rounds.append(avg_convergence_rounds)
 
 		# Plot data and show it
-		f = plt.figure()
 		plt.plot(x_adversary_count, y_avg_rounds)
 
 		plt.xlabel("Number of faulty nodes")
 		plt.ylabel("Average number of rounds")
 		plt.title(f"Average number of rounds until convergence with faulty nodes")
-		# f.show()
 
 	@staticmethod
 	def info():

@@ -86,7 +86,7 @@ class PopulationNetwork:
 		for agent in range(len(self.graph)):
 			# agent is the index of the agent
 			# Calculate new state based on neighbours (using copy of graph)
-			 
+
 			# Agents state
 			agent_state = graph_copy[agent]
 
