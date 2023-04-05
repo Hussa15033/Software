@@ -175,7 +175,7 @@ class NMajorityAnalyser(Analyser):
 			# Increase n majority of protocol by 2 each time
 			protocol = NMajorityProtocol(n_majority)
 
-			# The state of each node should be different
+			# The state of each node should be unique
 			state_config = [1] * self.nodes
 
 			total_convergence_rounds = 0
@@ -199,8 +199,8 @@ class NMajorityAnalyser(Analyser):
 		f = plt.figure()
 		plt.plot(x_majority_axis, y_avg_rounds)
 
-		plt.xlabel("N - Majority")
-		plt.ylabel("Average number of rounds")
+		plt.xlabel("Nodes sampled")
+		plt.ylabel("Average number of rounds until convergence")
 		plt.title(f"Average number of rounds until convergence for N-Majority protocols with {self.nodes} nodes")
 		f.show()
 
