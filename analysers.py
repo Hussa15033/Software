@@ -74,6 +74,10 @@ class BasicAnalyser(Analyser):
 			print("Error: Please provide the number of states for the network")
 			return
 
+		if self.protocol is None:
+			print("Error: Please specify the protocol to run")
+			return
+
 		network = PopulationNetwork.network_from_configuration(self.nodes, self.states, self.protocol, self.state_config)
 		while not network.has_converged():
 			network.run_round()
